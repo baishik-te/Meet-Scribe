@@ -1,0 +1,934 @@
+:root {
+  --bg-main: #0f121a;
+  --bg-dock: #181c28;
+  --bg-card: #1c202e;
+  --bg-card-secondary: #252b3d;
+  --btn-dock-bg: #272c3d;
+  --btn-dock-hover: #333a4f;
+  --accent-blue: #2563eb;
+  --accent-blue-hover: #1d4ed8;
+  --accent-red: #ef4444;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --border-color: #2a3144;
+  --radius-pill: 9999px;
+  --radius-lg: 20px;
+  --radius-md: 12px;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden;
+}
+
+.app-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  background-color: var(--bg-main);
+}
+
+/* Sidebar Dock Styling */
+.dock-sidebar {
+  width: 80px;
+  background-color: var(--bg-dock);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 0 20px 0;
+  border-right: 1px solid var(--border-color);
+  box-shadow: 2px 0 16px rgba(0, 0, 0, 0.4);
+  z-index: 100;
+}
+
+.dock-logo-container {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-bottom: 32px;
+  transition: transform 0.2s ease;
+}
+
+.dock-logo-container:hover {
+  transform: scale(1.08);
+}
+
+.dock-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 8px rgba(37, 99, 235, 0.4));
+}
+
+.dock-nav-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+}
+
+.dock-bottom-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.dock-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-pill);
+  background-color: var(--btn-dock-bg);
+  color: var(--text-secondary);
+  border: 1px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dock-btn:hover {
+  background-color: var(--btn-dock-hover);
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+/* Active circular state matches reference image */
+.dock-btn.active {
+  background-color: var(--accent-blue);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.45);
+}
+
+.dock-btn-exit:hover {
+  background-color: var(--accent-red);
+  color: #fff;
+}
+
+.main-viewport {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 32px;
+  overflow-y: auto;
+}
+
+/* Admin */
+/* --- Admin Dedicated Vertical Sidebar --- */
+.admin-sidebar {
+  width: 240px;
+  background-color: var(--bg-dock);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  padding: 24px 16px;
+  box-shadow: 2px 0 16px rgba(0, 0, 0, 0.4);
+  flex-shrink: 0;
+}
+
+.admin-sidebar-logo-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 8px 20px 8px;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.admin-sidebar-logo-container:hover {
+  opacity: 0.85;
+}
+
+.admin-sidebar-logo-img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 8px rgba(37, 99, 235, 0.4));
+}
+
+.admin-sidebar-brand {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.5px;
+}
+
+.admin-sidebar-divider {
+  height: 1px;
+  background-color: var(--border-color);
+  margin-bottom: 20px;
+}
+
+.admin-sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.admin-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid transparent;
+}
+
+.admin-nav-item:hover {
+  background-color: var(--bg-card-secondary);
+  color: var(--text-primary);
+  transform: translateX(3px);
+}
+
+.admin-nav-item.active {
+  background-color: var(--accent-blue);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+}
+
+.admin-nav-item .admin-nav-icon {
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+}
+
+.admin-content-area {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Metric KPI Cards */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+  margin-bottom: 28px;
+}
+
+.kpi-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.kpi-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.kpi-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* Form Styling */
+.admin-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 28px;
+}
+
+.admin-card-header {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 18px;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+.dark-input, .dark-select {
+  background-color: var(--bg-card-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  color: var(--text-primary);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.dark-input:focus, .dark-select:focus {
+  border-color: var(--accent-blue);
+}
+
+.dark-select option {
+  background-color: var(--bg-card);
+  color: #fff;
+}
+
+.admin-btn {
+  background-color: var(--accent-blue);
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.admin-btn:hover {
+  background-color: var(--accent-blue-hover);
+}
+
+.admin-btn-warning {
+  background-color: #d97706;
+}
+.admin-btn-warning:hover {
+  background-color: #b45309;
+}
+
+/* Data Table */
+.table-wrapper {
+  overflow-x: auto;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 14px;
+}
+
+.admin-table th {
+  background-color: var(--bg-card-secondary);
+  color: var(--text-secondary);
+  padding: 14px 16px;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.admin-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.admin-table tr:last-child td {
+  border-bottom: none;
+}
+
+.admin-table tr:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+/* Status Badges */
+.badge-status {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.badge-status.active {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+.badge-status.suspended {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+.badge-status.pending {
+  background-color: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  max-width: 700px;
+  width: 90%;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 32px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+  background-color: var(--bg-card-secondary);
+  color: var(--text-primary);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-color);
+}
+
+.admin-btn-secondary {
+  background-color: var(--bg-card-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  padding: 12px 24px;
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-btn-secondary:hover {
+  background-color: var(--btn-dock-hover);
+}
+
+.admin-btn-small {
+  background-color: var(--accent-blue);
+  color: #fff;
+  border: none;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-btn-small:hover {
+  background-color: var(--accent-blue-hover);
+  transform: translateY(-1px);
+}
+/* =========================================================================
+   Teams-style redesign additions
+   All rules below use ONLY the existing :root custom properties.
+   No token values are changed. (Requirements 1.5, 8.16, 12.2, 13.4)
+   ========================================================================= */
+
+/* ── Formalize referenced-but-undefined classes ──
+   Previously used inline by UserDashboard / CallRoom / Connections / Admin
+   pages but never defined in theme.css. */
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.top-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.2px;
+}
+
+.pill-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ── Layout: app shell + Teams-style vertical nav rail ── */
+.app-shell {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  background-color: var(--bg-main);
+}
+
+.app-shell__main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 32px;
+  overflow-y: auto;
+}
+
+.nav-rail {
+  width: 80px;
+  background-color: var(--bg-dock);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 0 20px 0;
+  border-right: 1px solid var(--border-color);
+  box-shadow: 2px 0 16px rgba(0, 0, 0, 0.4);
+  z-index: 100;
+  flex-shrink: 0;
+}
+
+.nav-rail__group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+}
+
+.nav-rail__group--secondary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  flex: 0 0 auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
+}
+
+.nav-rail__btn {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-pill);
+  background-color: var(--btn-dock-bg);
+  color: var(--text-secondary);
+  border: 1px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-rail__btn:hover {
+  background-color: var(--btn-dock-hover);
+  color: var(--text-primary);
+  transform: translateY(-2px);
+}
+
+.nav-rail__btn.active {
+  background-color: var(--accent-blue);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.45);
+}
+
+/* Hover flyout label */
+.nav-rail__label {
+  position: absolute;
+  left: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  z-index: 200;
+}
+
+.nav-rail__btn:hover .nav-rail__label,
+.nav-rail__btn:focus-visible .nav-rail__label {
+  opacity: 1;
+}
+
+/* Responsive: collapse rail to a fixed bottom navigation bar */
+@media (max-width: 768px) {
+  .nav-rail--bottom {
+    flex-direction: row;
+    width: 100vw;
+    height: 64px;
+    padding: 0 12px;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    border-right: none;
+    border-top: 1px solid var(--border-color);
+    box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.4);
+  }
+
+  .nav-rail--bottom .nav-rail__group,
+  .nav-rail--bottom .nav-rail__group--secondary {
+    flex-direction: row;
+    padding: 0;
+    border-top: none;
+  }
+
+  /* Bottom-bar flyout labels sit above the icons */
+  .nav-rail--bottom .nav-rail__label {
+    left: 50%;
+    top: auto;
+    bottom: calc(100% + 8px);
+    transform: translateX(-50%);
+  }
+}
+
+/* ── Auth pages ── */
+.auth-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  width: 100%;
+  max-width: 420px;
+  margin: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.auth-card__header {
+  margin-bottom: 24px;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.form-error {
+  margin-top: 4px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--accent-red);
+  background-color: rgba(239, 68, 68, 0.12);
+  color: var(--accent-red);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+@keyframes auth-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Chat layout ── */
+.chat-layout {
+  display: flex;
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
+}
+
+.chat-layout__list {
+  width: 300px;
+  flex-shrink: 0;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  overflow-y: auto;
+}
+
+.chat-layout__main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.composer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border-color);
+  background-color: var(--bg-card-secondary);
+}
+
+.composer__btn {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: var(--radius-pill);
+  background-color: var(--accent-blue);
+  color: #ffffff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.composer__btn:hover {
+  background-color: var(--accent-blue-hover);
+}
+
+.chat-layout__back {
+  display: none;
+}
+
+/* Responsive: on narrow viewports show a single active column at a time.
+   The list is shown until a connection is selected; selecting one reveals the
+   main pane and a "Back" control returns to the list (Requirement 4.11). */
+@media (max-width: 768px) {
+  .chat-layout__list {
+    width: 100%;
+  }
+
+  .chat-layout__list.is-inactive,
+  .chat-layout__main.is-inactive {
+    display: none;
+  }
+
+  .chat-layout__list.is-active,
+  .chat-layout__main.is-active {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  .chat-layout__main .chat-layout__back {
+    display: inline-flex;
+  }
+}
+
+/* ── Call room ── */
+.call-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  gap: 16px;
+}
+
+.call-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--radius-pill);
+  background-color: var(--bg-dock);
+  border: 1px solid var(--border-color);
+}
+
+.call-toolbar__btn {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-pill);
+  background-color: var(--btn-dock-bg);
+  color: var(--text-secondary);
+  border: 1px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.call-toolbar__btn:hover {
+  background-color: var(--btn-dock-hover);
+  color: var(--text-primary);
+}
+
+.call-toolbar__btn--active {
+  background-color: var(--accent-blue);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.45);
+}
+
+.call-toolbar__btn--danger {
+  background-color: var(--accent-red);
+  color: #ffffff;
+}
+
+.call-toolbar__btn--danger:hover {
+  background-color: var(--accent-red);
+  color: #ffffff;
+  filter: brightness(1.1);
+}
+
+.video-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  background-color: var(--bg-dock);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.self-view {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  width: 200px;
+  height: 130px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-card);
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  z-index: 10;
+}
+
+.meeting-panel {
+  width: 320px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.msg--self {
+  align-self: flex-end;
+  max-width: 75%;
+  padding: 8px 14px;
+  border-radius: var(--radius-lg);
+  background-color: var(--accent-blue);
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.msg--other {
+  align-self: flex-start;
+  max-width: 75%;
+  padding: 8px 14px;
+  border-radius: var(--radius-lg);
+  background-color: var(--bg-card-secondary);
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+/* ── Inline notices ── */
+.inline-notice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-card-secondary);
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.inline-notice--error {
+  border-color: var(--accent-red);
+  background-color: rgba(239, 68, 68, 0.12);
+  color: var(--accent-red);
+}
+
+/* ── Accessibility: visible focus indicator for interactive controls
+   using theme tokens (Requirement 13.4) ── */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible,
+.nav-rail__btn:focus-visible,
+.call-toolbar__btn:focus-visible,
+.composer__btn:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+}

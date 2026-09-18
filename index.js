@@ -1,0 +1,78 @@
+﻿require('dotenv').config();
+const http = require('http');
+const express = require('express');
+const cors = require('cors');
+const { Server } = require('socket.io');
+
+const { sequelize } = require('./models');
+const apiRoutes = require('./routes/api.routes');
+const errorMiddleware = require('./middleware/error.middleware');
+const socketService = require('./services/socket.service');
+const { initCallBilling } = require('./cron/callBilling.cron');
+const { verifySMTPConnection } = require('./services/email.service');
+
+const app = express();
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: [
+      process.env.CLIENT_URL || 'http://localhost:5173',
+      'http://192.168.0.100:5173',
+      'http://localhost:5173'
+    ],
+    methods: ['GET', 'POST'],
+    credentials: true
+  }
+});
+
+socketService.init(io);
+
+app.use(cors({
+  origin: [
+    process.env.CLIENT_URL || 'http://localhost:5173',
+    'http://192.168.0.100:5173',
+    'http://localhost:5173'
+  ],
+  credentials: true
+}));
+
+// Stripe webhook needs raw body - must be BEFORE express.json()
+// Registered at both paths so Stripe Dashboard + Stripe CLI both work
+const webhookHandler = require('./controller/wallet.controller').handleStripeWebhook;
+app.post('/api/v1/webhooks/stripe', express.raw({ type: 'application/json' }), webhookHandler);
+app.post('/webhooks/stripe',        express.raw({ type: 'application/json' }), webhookHandler);
+
+// Body parsing middleware for all other routes
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.use('/api/v1', apiRoutes);
+app.use(errorMiddleware);
+
+const PORT = process.env.PORT || 5000;
+
+const startServer = async () => {
+  try {
+    await sequelize.authenticate();
+    console.log('PostgreSQL Database connected successfully via Sequelize.');
+    
+    // Verify SMTP connection
+    try {
+      await verifySMTPConnection();
+    } catch (error) {
+      console.warn('SMTP verification failed, but server will continue:', error.message);
+    }
+    
+    initCallBilling();
+    server.listen(PORT, () => {
+      console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+      console.log(`CORS enabled for origins: localhost:5173, 192.168.0.100:5173`);
+    });
+  } catch (error) {
+    console.error('Failed to initialize server:', error);
+    process.exit(1);
+  }
+};
+
+startServer();
