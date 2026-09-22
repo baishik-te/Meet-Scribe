@@ -16,7 +16,6 @@ export const Register: React.FC = () => {
     setError('');
     setLoading(true);
     try {
-      // PRESERVED: exact register call + verify-otp navigation
       await api.post('/auth/register', { name, email, password });
       navigate(`/verify-otp?email=${encodeURIComponent(email)}`);
     } catch (err: any) {

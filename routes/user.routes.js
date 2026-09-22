@@ -9,8 +9,8 @@ const { uploadRecording } = require('../middleware/upload.middleware');
 
 // OTP verification routes (no authentication required)
 router.post('/otp/resend', UserController.resendOtp);
-router.post('/otp/verify', UserController.verifyOtp); // Returns login token
-router.post('/otp/verify-only', UserController.verifyOtpOnly); // Only verifies, no token
+router.post('/otp/verify', UserController.verifyOtp); 
+router.post('/otp/verify-only', UserController.verifyOtpOnly); 
 
 router.use(authenticate);
 
@@ -40,7 +40,7 @@ router.delete('/connections/:id/cancel', UserController.cancelConnectionRequest)
 router.post('/connections/block', UserController.blockUser);
 router.post('/connections/unblock', UserController.unblockUser);
 
-// Direct 1:1 Messaging (within accepted connections)
+// Direct 1 on 1 Messaging 
 router.get('/messages/summary', MessageController.getSummary);
 router.get('/connections/:connectionId/messages', MessageController.getMessages);
 router.post('/connections/:connectionId/messages', MessageController.sendMessage);
@@ -71,7 +71,7 @@ router.get('/recordings/:id/file', MediaController.streamRecording);
 // Transcription library (calls that have transcripts)
 router.get('/transcriptions', MediaController.listTranscriptionSessions);
 
-// MeetScribe AI — RAG PDF chat (inherits auth + verifyActive)
+// MeetScribe AI 
 router.use('/pdf', require('./pdfChat.routes'));
 
 module.exports = router;

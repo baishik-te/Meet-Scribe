@@ -85,6 +85,14 @@ export const Login: React.FC = () => {
             required
             disabled={loading}
           />
+          <div style={{ textAlign: 'right', marginTop: 6 }}>
+            <Link
+              to="/forgot-password"
+              style={{ fontSize: 13, color: 'var(--accent-blue)', textDecoration: 'none' }}
+            >
+              Forgot password?
+            </Link>
+          </div>
         </div>
 
         {error && (

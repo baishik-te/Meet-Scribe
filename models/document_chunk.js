@@ -1,7 +1,5 @@
-// NOTE: the `embedding VECTOR(1536)` column is intentionally NOT declared here.
-// Sequelize has no native pgvector type, so embeddings are written and queried
-// via raw SQL (see services/meetscribe/vectorSearchService.js). This model is
-// used for listing/counting/deleting chunk metadata only.
+
+//Embeddings via raw SQL (see services/meetscribe/vectorSearchService.js)
 module.exports = (sequelize, DataTypes) => {
   const DocumentChunk = sequelize.define('DocumentChunk', {
     id: {

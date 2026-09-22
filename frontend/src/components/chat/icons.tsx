@@ -1,7 +1,5 @@
 import React from 'react';
 
-// Small inline SVG icon set for the Messages page. Currentcolor-driven so they
-// inherit themed text colors. Sized 18px by default.
 interface IconProps {
   size?: number;
 }

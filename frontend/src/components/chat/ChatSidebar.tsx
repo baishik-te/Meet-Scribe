@@ -1,9 +1,13 @@
-import React, { useMemo, useState } from 'react';
-import type { ConnectionVM, SearchUserVM, MessageSummaryVM } from '../../types/viewModels';
-import { Avatar } from './Avatar';
-import { InlineNotice } from '../InlineNotice';
-import { formatRelative } from '../../lib/messageTime';
-import { SearchIcon, ChevronIcon, ComposeIcon } from './icons';
+import React, { useMemo, useState } from "react";
+import type {
+  ConnectionVM,
+  SearchUserVM,
+  MessageSummaryVM,
+} from "../../types/viewModels";
+import { Avatar } from "./Avatar";
+import { InlineNotice } from "../InlineNotice";
+import { formatRelative } from "../../lib/messageTime";
+import { SearchIcon, ChevronIcon, ComposeIcon } from "./icons";
 
 interface ChatSidebarProps {
   connections: ConnectionVM[];
@@ -53,7 +57,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   searchError,
   onDismissSearchError,
   onConnect,
-  typing
+  typing,
 }) => {
   const [favOpen, setFavOpen] = useState(true);
   const [chatsOpen, setChatsOpen] = useState(true);
@@ -61,8 +65,8 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
 
   // Only accepted connections are chat threads.
   const accepted = useMemo(
-    () => connections.filter((c) => c.status === 'ACCEPTED'),
-    [connections]
+    () => connections.filter((c) => c.status === "ACCEPTED"),
+    [connections],
   );
 
   // Client-side filter of existing chats by the search term (name/email).
@@ -72,7 +76,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
     return accepted.filter(
       (c) =>
         c.contact.name.toLowerCase().includes(term) ||
-        c.contact.email.toLowerCase().includes(term)
+        c.contact.email.toLowerCase().includes(term),
     );
   }, [accepted, term]);
 
@@ -94,12 +98,12 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
     const isFav = favorites.has(conn.id);
     const isTyping = typing[conn.id];
 
-    let preview = 'No messages yet';
+    let preview = "No messages yet";
     if (isTyping) {
-      preview = 'typing…';
+      preview = "typing…";
     } else if (summary) {
       const mine = summary.lastMessage.senderId === currentUserId;
-      preview = `${mine ? 'You: ' : ''}${summary.lastMessage.body}`;
+      preview = `${mine ? "You: " : ""}${summary.lastMessage.body}`;
     }
     const unread = summary?.unreadCount ?? 0;
 
@@ -108,10 +112,10 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
         key={conn.id}
         role="button"
         tabIndex={0}
-        className={`msgx-item${isSelected ? ' is-selected' : ''}`}
+        className={`msgx-item${isSelected ? " is-selected" : ""}`}
         onClick={() => onSelect(conn.id)}
         onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
+          if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
             onSelect(conn.id);
           }
@@ -123,31 +127,41 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
           <div className="msgx-item__row">
             <span className="msgx-item__name">{conn.contact.name}</span>
             <span className="msgx-item__time">
-              {summary ? formatRelative(summary.lastMessage.createdAt) : ''}
+              {summary ? formatRelative(summary.lastMessage.createdAt) : ""}
             </span>
           </div>
           <div className="msgx-item__row">
             <span
-              className={`msgx-item__preview${unread > 0 && !isSelected ? ' is-unread' : ''}`}
-              style={isTyping ? { color: 'var(--accent-blue)', fontStyle: 'italic' } : undefined}
+              className={`msgx-item__preview${unread > 0 && !isSelected ? " is-unread" : ""}`}
+              style={
+                isTyping
+                  ? { color: "var(--accent-blue)", fontStyle: "italic" }
+                  : undefined
+              }
             >
               {preview}
             </span>
-            {unread > 0 && !isSelected && <span className="msgx-badge">{unread}</span>}
+            {unread > 0 && !isSelected && (
+              <span className="msgx-badge">{unread}</span>
+            )}
           </div>
         </div>
         <button
           type="button"
           className="msgx-iconbtn"
-          style={{ width: 26, height: 26, color: isFav ? '#f5b301' : 'var(--text-secondary)' }}
-          title={isFav ? 'Remove from favorites' : 'Add to favorites'}
-          aria-label={isFav ? 'Remove from favorites' : 'Add to favorites'}
+          style={{
+            width: 26,
+            height: 26,
+            color: isFav ? "#f5b301" : "var(--text-secondary)",
+          }}
+          title={isFav ? "Remove from favorites" : "Add to favorites"}
+          aria-label={isFav ? "Remove from favorites" : "Add to favorites"}
           onClick={(e) => {
             e.stopPropagation();
             onToggleFavorite(conn.id);
           }}
         >
-          {isFav ? '★' : '☆'}
+          {isFav ? "★" : "☆"}
         </button>
       </div>
     );
@@ -186,8 +200,12 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
 
       <div className="msgx-sidebar__scroll">
         {searchError && (
-          <div style={{ padding: '0 8px 8px' }}>
-            <InlineNotice message={searchError} variant="error" onDismiss={onDismissSearchError} />
+          <div style={{ padding: "0 8px 8px" }}>
+            <InlineNotice
+              message={searchError}
+              variant="error"
+              onDismiss={onDismissSearchError}
+            />
           </div>
         )}
 
@@ -203,7 +221,11 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                   <div className="msgx-result__name">{u.name}</div>
                   <div className="msgx-result__email">{u.email}</div>
                 </div>
-                <button type="button" className="msgx-btn-sm" onClick={() => onConnect(u.id)}>
+                <button
+                  type="button"
+                  className="msgx-btn-sm"
+                  onClick={() => onConnect(u.id)}
+                >
                   Connect
                 </button>
               </div>
@@ -220,7 +242,9 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
               onClick={() => setReqOpen((v) => !v)}
               aria-expanded={reqOpen}
             >
-              <span className={`msgx-section__chevron${reqOpen ? '' : ' is-collapsed'}`}>
+              <span
+                className={`msgx-section__chevron${reqOpen ? "" : " is-collapsed"}`}
+              >
                 <ChevronIcon />
               </span>
               Requests
@@ -230,18 +254,20 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
             </button>
             {reqOpen &&
               pending.map((conn) => {
-                const isReceiver = conn.myRole === 'RECEIVER';
+                const isReceiver = conn.myRole === "RECEIVER";
                 return (
                   <div key={conn.id} className="msgx-result">
                     <Avatar name={conn.contact.name} size="sm" />
                     <div className="msgx-result__body">
-                      <div className="msgx-result__name">{conn.contact.name}</div>
+                      <div className="msgx-result__name">
+                        {conn.contact.name}
+                      </div>
                       <div className="msgx-result__email">
-                        {isReceiver ? 'Wants to connect' : 'Request sent'}
+                        {isReceiver ? "Wants to connect" : "Request sent"}
                       </div>
                     </div>
                     {isReceiver ? (
-                      <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                      <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
                         <button
                           type="button"
                           className="msgx-btn-sm"
@@ -279,7 +305,9 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
           onClick={() => setFavOpen((v) => !v)}
           aria-expanded={favOpen}
         >
-          <span className={`msgx-section__chevron${favOpen ? '' : ' is-collapsed'}`}>
+          <span
+            className={`msgx-section__chevron${favOpen ? "" : " is-collapsed"}`}
+          >
             <ChevronIcon />
           </span>
           Favorites
@@ -298,7 +326,9 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
           onClick={() => setChatsOpen((v) => !v)}
           aria-expanded={chatsOpen}
         >
-          <span className={`msgx-section__chevron${chatsOpen ? '' : ' is-collapsed'}`}>
+          <span
+            className={`msgx-section__chevron${chatsOpen ? "" : " is-collapsed"}`}
+          >
             <ChevronIcon />
           </span>
           Chats
@@ -309,8 +339,8 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
           ) : (
             <div className="msgx-empty-list">
               {accepted.length === 0
-                ? 'No connections yet. Search above to find people.'
-                : 'No conversations match your search.'}
+                ? "No connections yet. Search above to find people."
+                : "No conversations match your search."}
             </div>
           ))}
       </div>

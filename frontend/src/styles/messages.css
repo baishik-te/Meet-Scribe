@@ -1,8 +1,3 @@
-/* =========================================================================
-   Messages / Chat page — scoped styles (prefix: .msgx-)
-   Uses ONLY the existing Theme_System tokens from theme.css.
-   All rules are namespaced to avoid affecting other pages.
-   ========================================================================= */
 
 .msgx {
   display: flex;

@@ -1,16 +1,7 @@
 import { Room, RoomEvent, Track } from 'livekit-client';
 import type { TrackPublication, Participant } from 'livekit-client';
 
-/**
- * CallRecorder produces a single WebM recording of the whole meeting entirely in
- * the browser:
- *   - Video: every participant's camera (and any screen share) is drawn onto a
- *     canvas in a grid each frame; the canvas is captured as the video track.
- *   - Audio: every microphone track (local + remote) is mixed through a Web
- *     Audio graph into one output track.
- * The two are combined into one MediaStream and fed to a MediaRecorder. On stop
- * it returns the recorded Blob plus the elapsed duration for upload.
- */
+
 export class CallRecorder {
   private room: Room;
   private canvas: HTMLCanvasElement;
@@ -49,7 +40,7 @@ export class CallRecorder {
     this.audioCtx = new AudioCtx();
     this.dest = this.audioCtx.createMediaStreamDestination();
 
-    // Seed current tracks, then keep them in sync as people join/leave/toggle.
+    // Seed current tracks
     this.collectAllTracks();
     this.room.on(RoomEvent.TrackSubscribed, this.handleTrackChange);
     this.room.on(RoomEvent.TrackUnsubscribed, this.handleTrackChange);
@@ -143,22 +134,19 @@ export class CallRecorder {
             this.videoEls.set(pub.trackSid, el);
           }
         } else if (pub.kind === Track.Kind.Audio && !isLocal) {
-          // Remote mic audio. (Local mic is added explicitly below so muted
-          // remote-publication state doesn't drop the local voice.)
+          // Remote mic audio.
           liveAudioSids.add(pub.trackSid);
           this.addAudioSource(pub.trackSid, track.mediaStreamTrack);
         }
       });
     }
 
-    // Always include the local microphone so the recording has our own voice.
     const localMic = this.room.localParticipant.getTrackPublication(Track.Source.Microphone);
     if (localMic?.track?.mediaStreamTrack) {
       liveAudioSids.add(localMic.trackSid);
       this.addAudioSource(localMic.trackSid, localMic.track.mediaStreamTrack);
     }
 
-    // Drop video elements whose tracks disappeared.
     for (const sid of Array.from(this.videoEls.keys())) {
       if (!liveVideoSids.has(sid)) {
         const el = this.videoEls.get(sid);
@@ -166,7 +154,6 @@ export class CallRecorder {
         this.videoEls.delete(sid);
       }
     }
-    // Disconnect audio sources whose tracks disappeared.
     for (const sid of Array.from(this.audioSources.keys())) {
       if (!liveAudioSids.has(sid)) {
         this.audioSources.get(sid)?.disconnect();
@@ -214,7 +201,7 @@ export class CallRecorder {
   };
 }
 
-/** Draw a video element covering the target rect while preserving aspect ratio. */
+// Draw a video element covering the target rect while preserving aspect ratio. 
 function drawCover(
   ctx: CanvasRenderingContext2D,
   video: HTMLVideoElement,

@@ -5,7 +5,6 @@ import { VideoIcon, PeopleIcon, MoreIcon, BackIcon } from './icons';
 interface ChatHeaderProps {
   name: string;
   email: string;
-  /** Text shown under the name (e.g. "typing…", "Online", email). */
   statusText: string;
   online?: boolean;
   onStartCall: () => void;
@@ -14,7 +13,6 @@ interface ChatHeaderProps {
   onBlock: () => void;
 }
 
-/** Conversation header: identity + video-call / members / more actions. */
 export const ChatHeader: React.FC<ChatHeaderProps> = ({
   name,
   email,

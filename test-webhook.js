@@ -1,8 +1,3 @@
-/**
- * Test script to verify webhook endpoint is accessible
- * Run with: node test-webhook.js
- */
-
 const http = require('http');
 
 const testWebhookEndpoint = () => {

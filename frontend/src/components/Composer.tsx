@@ -5,13 +5,7 @@ export interface ComposerProps {
   disabled?: boolean;
 }
 
-/**
- * Presentational message composer for the Connections chat layout.
- *
- * All controls (emoji, attach, image, send) are presentational only and
- * invoke NO backend messaging endpoint. The send control may call the
- * optional local-only `onSend` callback with the typed text.
- */
+
 export const Composer: React.FC<ComposerProps> = ({ onSend, disabled = false }) => {
   const [text, setText] = useState('');
 
@@ -19,7 +13,7 @@ export const Composer: React.FC<ComposerProps> = ({ onSend, disabled = false }) 
     if (disabled) return;
     const trimmed = text.trim();
     if (!trimmed) return;
-    // Local-only: no backend messaging endpoint is invoked here.
+    
     onSend?.(trimmed);
     setText('');
   };

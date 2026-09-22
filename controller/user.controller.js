@@ -10,7 +10,7 @@ const TranscriptionBot = require('../services/transcription-bot.service');
 const { EmailService } = require('../services/email.service');
 
 class UserController {
-  // --- OTP Verification Methods ---
+  // OTP Verification Methods
   
   static async resendOtp(req, res, next) {
     const { email } = req.body;
@@ -62,14 +62,12 @@ class UserController {
         });
       }
 
-      // Generate new OTP
       const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
       const otpHash = await bcrypt.hash(generatedOtp, 10);
 
       console.log(`Generating new OTP for ${email}`);
 
       await sequelize.transaction(async (t) => {
-        // Invalidate any existing unverified OTPs
         await Otp.update(
           { verifiedAt: new Date() },
           {
@@ -108,10 +106,7 @@ class UserController {
 
   static async verifyOtpOnly(req, res, next) {
     const { email, otp } = req.body;
-    
-    // This endpoint only verifies OTP without generating login token
-    // Use this when you want to verify email separately from login
-    
+      
     if (!email || !otp) {
       return res.status(400).json({
         success: false,
@@ -296,7 +291,7 @@ class UserController {
     }
   }
 
-  // --- Profile Management ---
+  // Profile Management 
   static async getProfile(req, res, next) {
     try {
       const user = await User.findByPk(req.user.id, {
@@ -405,7 +400,7 @@ class UserController {
     }
   }
 
-  // --- Connections Architecture ---
+  // Connections
 
   static async searchUsers(req, res, next) {
     const { q } = req.query;
@@ -452,11 +447,8 @@ class UserController {
           status: conn.status,
           createdAt: conn.createdAt,
           updatedAt: conn.updatedAt,
-          // User's role in this connection
           myRole: isRequester ? 'SENDER' : 'RECEIVER',
-          // The other user
           contact: isRequester ? conn.receiver : conn.requester,
-          // Full connection data for reference
           requester: conn.requester,
           receiver: conn.receiver,
           requesterId: conn.requesterId,
@@ -546,7 +538,7 @@ class UserController {
     }
   }
 
-  // Cancel connection request (for sender/requester)
+  // Cancel connection request
   static async cancelConnectionRequest(req, res, next) {
     const { id } = req.params;
     try {
@@ -667,7 +659,7 @@ class UserController {
     }
   }
 
-  // --- LiveKit Video Calls ---
+  // LiveKit Video Calls
 
   static async initiateCall(req, res, next) {
     const { receiverId } = req.body;
@@ -786,10 +778,6 @@ class UserController {
         return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Call record not found' } });
       }
 
-      // Only transition + recompute duration the first time the call ends, so a
-      // second Leave/cleanup request stays idempotent and does not overwrite the
-      // recorded duration. Billing keys off `status === 'ACTIVE'`, so flipping
-      // this immediately stops any further token deduction.
       const alreadyEnded = call.status !== 'ACTIVE' && call.status !== 'RINGING';
       if (!alreadyEnded) {
         call.status = 'ENDED';
@@ -800,9 +788,6 @@ class UserController {
         await call.save();
       }
 
-      // Always tear down the meeting resources, even on a repeat call, so no
-      // LiveKit room is left running (which would keep the caller billable if it
-      // were ever re-activated) and the transcription bot is released.
       await TranscriptionBot.stopForCall(call.id).catch(() => {});
       await LiveKitService.endRoom(call.roomName);
       SocketService.emitToRoom(call.roomName, 'call:ended', { callId: call.id });
@@ -866,9 +851,6 @@ class UserController {
       call.transcriptionEnabled = Boolean(enable);
       await call.save();
 
-      // Start/stop the local whisper transcription bot for this room. The bot
-      // joins as a subscribe-only participant, transcribes speech with
-      // whisper.cpp, and broadcasts results via `transcription:new`.
       if (call.transcriptionEnabled) {
         TranscriptionBot.startForCall(call).catch((err) =>
           console.error('[toggleTranscription] bot start error:', err.message)
@@ -901,9 +883,7 @@ class UserController {
         endTime
       });
 
-      // Broadcast to everyone in the call's LiveKit room. Sockets join by
-      // roomName (`room:<roomName>`) and emitToRoom already adds the `room:`
-      // prefix, so we must pass the bare roomName here.
+
       const call = await Call.findByPk(callId);
       if (call) {
         SocketService.emitToRoom(call.roomName, 'transcription:new', {

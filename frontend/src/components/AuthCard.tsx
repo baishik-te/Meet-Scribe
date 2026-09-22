@@ -7,10 +7,6 @@ interface AuthCardProps {
   footer?: React.ReactNode;
 }
 
-/**
- * Shared presentational wrapper for authentication pages (Login, Register, VerifyOtp).
- * Renders a centered `.auth-card` on a full-viewport `--bg-main` container with no Nav_Rail.
- */
 export const AuthCard: React.FC<AuthCardProps> = ({ title, subtitle, children, footer }) => {
   return (
     <div

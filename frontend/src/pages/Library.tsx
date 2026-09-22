@@ -86,11 +86,10 @@ const RecordingsTab: React.FC = () => {
 
   useEffect(() => {
     load();
-    // Revoke any object URL created for playback when unmounting.
     return () => {
       if (playingUrl) URL.revokeObjectURL(playingUrl);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [load]);
 
   const startRename = (rec: RecordingVM) => {
@@ -110,8 +109,6 @@ const RecordingsTab: React.FC = () => {
     }
   };
 
-  // The file endpoint is auth-protected, so we fetch it as a blob (the axios
-  // client attaches the bearer token) and play it from an object URL.
   const play = async (rec: RecordingVM) => {
     try {
       if (playingUrl) URL.revokeObjectURL(playingUrl);

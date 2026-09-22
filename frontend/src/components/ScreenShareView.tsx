@@ -3,18 +3,10 @@ import { Room, RoomEvent, Track } from 'livekit-client';
 
 interface ScreenShareViewProps {
   room: Room;
-  /** Notifies the parent whenever an active screen-share appears/disappears. */
   onActiveChange?: (active: boolean) => void;
 }
 
-/**
- * ScreenShareView finds the currently-active screen-share video track (from any
- * participant, local or remote) and renders it large on the main stage.
- *
- * The <video> element is always mounted (visibility toggled) so the track can be
- * attached the moment a share starts, avoiding a null-ref race. When no one is
- * sharing it reports inactive and renders nothing visible.
- */
+
 export const ScreenShareView: React.FC<ScreenShareViewProps> = ({ room, onActiveChange }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [active, setActive] = useState(false);

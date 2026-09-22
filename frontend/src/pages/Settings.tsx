@@ -3,16 +3,7 @@ import { AppShell } from '../components/AppShell';
 import { InlineNotice, InlineNoticeVariant } from '../components/InlineNotice';
 import api from '../api/client';
 
-/**
- * Pure predicate for the Settings password-change validation.
- *
- * Returns true if and only if the new and confirm passwords are equal AND the
- * new password is at least 6 characters long. The submit handler calls
- * `PATCH /user/password` if and only if this predicate returns true.
- *
- * Exported for reuse by the property test (task 11.3). Keep it pure and free
- * of side effects.
- */
+
 export function isValidPasswordChange(newPassword: string, confirmPassword: string): boolean {
   return newPassword === confirmPassword && newPassword.length >= 6;
 }

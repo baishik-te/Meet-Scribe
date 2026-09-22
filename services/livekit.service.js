@@ -23,9 +23,6 @@ class LiveKitService {
       canPublishData: true
     });
 
-    // livekit-server-sdk v2+ returns a Promise<string> from toJwt(); it MUST be
-    // awaited or the caller receives a Promise that serializes to
-    // "[object Object]" in the URL and breaks the LiveKit connection.
     return at.toJwt();
   }
 
@@ -39,14 +36,6 @@ class LiveKitService {
     }
   }
 
-  /**
-   * List the participant identities currently connected to a room.
-   *
-   * @returns {Promise<string[]|null>} identities, an empty array if the room no
-   *   longer exists (everyone left → LiveKit closed it), or `null` when the
-   *   state could not be determined due to a transient error (callers should
-   *   NOT treat null as "empty").
-   */
   static async listParticipantIdentities(roomName) {
     try {
       const participants = await roomService.listParticipants(roomName);

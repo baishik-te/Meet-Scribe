@@ -1,14 +1,10 @@
 const DeepgramService = require('./deepgram.service');
 const WhisperService = require('./whisper.service');
 
-// Default cooldown when Deepgram reports a quota error without a retry hint.
 const DEFAULT_COOLDOWN_MS = 60000;
 
 const NON_QUOTA_COOLDOWN_MS = 15000;
-
-// While > now, Deepgram is skipped and whisper handles transcription.
 let deepgramCooldownUntil = 0;
-// Track the currently-active engine so we only log on transitions (not spam).
 let activeEngine = null;
 
 function log(message) {
@@ -24,12 +20,10 @@ function announce(engine, reason) {
 }
 
 const SttService = {
-  /** Which engines are usable right now. */
   enginesAvailable() {
     return { deepgram: DeepgramService.isConfigured(), whisper: WhisperService.isAvailable() };
   },
 
-  /** True if at least one engine can run. */
   isAvailable() {
     return DeepgramService.isConfigured() || WhisperService.isAvailable();
   },

@@ -7,15 +7,7 @@ interface ProtectedRouteProps {
   requireActive?: boolean; // If true, requires user to be ACTIVE and emailVerified
 }
 
-/**
- * ProtectedRoute wrapper that enforces authentication and verification status
- * 
- * Features:
- * - Redirects to /login if not authenticated
- * - Redirects to /verify-otp if user is INACTIVE (requires verification)
- * - Redirects to dashboard if user is still loading
- * - Only allows ACTIVE users to proceed if requireActive is true
- */
+
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
   children, 
   requireActive = true 
@@ -64,10 +56,6 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   return <>{children}</>;
 };
 
-/**
- * Alternative: For routes that don't require active status (like profile edit page)
- * but still need authentication
- */
 export const AuthenticatedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, token, loading } = useAuth();
   const location = useLocation();

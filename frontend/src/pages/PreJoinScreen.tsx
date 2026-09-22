@@ -1,32 +1,16 @@
-// PreJoinScreen — the media check surface shown before LiveKit connects.
-//
-// Renders a live camera preview, camera/mic toggles, and (when more than one
-// input device of a type exists) device pickers. On denied/in-use/unavailable
-// it surfaces the mapped `MediaError` message + a retry control and stays on
-// the screen. On confirm it stops the preview tracks and hands a
-// `PreJoinConfig` (selected device IDs + enabled flags) to the caller.
-//
-// Design: section 8 — `PreJoinScreen` + `useMediaDevices` hook.
-// Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8.
+// PreJoinScreen
+
 import React, { useEffect, useRef } from 'react';
 import { useMediaDevices } from '../hooks/useMediaDevices';
 import type { PreJoinConfig } from '../types/viewModels';
 
 export interface PreJoinScreenProps {
-  /** Room name the call will connect to. */
   room: string;
-  /** Backend call id, when already created. */
   callId: string | null;
-  /** LiveKit access token, when already issued. */
   token: string | null;
-  /** Invoked with the assembled config after preview tracks are stopped. */
   onConfirm: (config: PreJoinConfig) => void;
 }
 
-/**
- * PreJoinScreen — see module docblock. Owns no media logic itself; it drives
- * the `useMediaDevices` hook and reflects its state (Requirement 7.1).
- */
 export const PreJoinScreen: React.FC<PreJoinScreenProps> = ({
   room,
   callId,
@@ -47,8 +31,6 @@ export const PreJoinScreen: React.FC<PreJoinScreenProps> = ({
 
   const cameraLive = state.status === 'granted' && state.cameraEnabled;
 
-  // Attach the preview stream to the <video> whenever the camera is live and a
-  // stream is available; detach otherwise (Requirement 7.3).
   useEffect(() => {
     const el = videoRef.current;
     if (!el) return;
@@ -60,8 +42,7 @@ export const PreJoinScreen: React.FC<PreJoinScreenProps> = ({
   }, [cameraLive, state.previewStream]);
 
   const handleConfirm = () => {
-    // Stop preview tracks before handing off so the call can re-acquire the
-    // selected devices cleanly (Requirement 7.7).
+    
     stop();
     const config: PreJoinConfig = {
       callId,
@@ -78,8 +59,7 @@ export const PreJoinScreen: React.FC<PreJoinScreenProps> = ({
   const showCameraPicker = state.cameras.length > 1;
   const showMicPicker = state.microphones.length > 1;
 
-  // Denied stays on screen with remediation steps (Requirement 7.5). In-use /
-  // unavailable / not-found show a message + retry (Requirement 7.6).
+  
   const hasError = state.status === 'denied' || state.status === 'error';
   const requesting = state.status === 'requesting' || state.status === 'idle';
 

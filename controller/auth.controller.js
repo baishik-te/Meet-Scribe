@@ -3,6 +3,13 @@ const jwt = require('jsonwebtoken');
 const { User, Otp, Wallet, sequelize } = require('../models');
 const { EmailService } = require('../services/email.service');
 
+const OTP_EXPIRY_MS = (Number(process.env.OTP_EXPIRY_MINUTES) || 10) * 60 * 1000;
+const MAX_OTP_ATTEMPTS = 5;
+
+function generateOtp() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
 class AuthController {
   static async register(req, res, next) {
     const { name, email, password } = req.body;
@@ -207,6 +214,158 @@ class AuthController {
     } catch (error) {
       next(error);
     }
+  }
+
+  // Step 1: Request a password reset. Sends an OTP to the user's email.
+  // Always responds with success to avoid leaking which emails are registered.
+  static async forgotPassword(req, res, next) {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'MISSING_FIELDS', message: 'Email is required' }
+      });
+    }
+
+    const genericResponse = {
+      success: true,
+      data: { message: 'If an account exists for that email, a reset code has been sent.' }
+    };
+
+    try {
+      const user = await User.findOne({ where: { email } });
+
+      // Do not reveal whether the account exists.
+      if (!user) {
+        return res.status(200).json(genericResponse);
+      }
+
+      const generatedOtp = generateOtp();
+      const otpHash = await bcrypt.hash(generatedOtp, 10);
+
+      await Otp.create({
+        userId: user.id,
+        email: user.email,
+        otpHash,
+        purpose: 'PASSWORD_RESET',
+        expiresAt: new Date(Date.now() + OTP_EXPIRY_MS)
+      });
+
+      await EmailService.sendOtp(user.email, generatedOtp);
+
+      return res.status(200).json(genericResponse);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // Step 2: Verify the password reset OTP without consuming it.
+  static async verifyResetOtp(req, res, next) {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'MISSING_FIELDS', message: 'Email and OTP are required' }
+      });
+    }
+
+    try {
+      const result = await AuthController._findValidResetOtp(email, otp);
+      if (!result.ok) {
+        return res.status(result.status).json({ success: false, error: result.error });
+      }
+
+      return res.status(200).json({
+        success: true,
+        data: { message: 'OTP verified. You may now set a new password.' }
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // Step 3: Reset the password. Re-validates the OTP, then updates the hash.
+  static async resetPassword(req, res, next) {
+    const { email, otp, newPassword, confirmPassword } = req.body;
+
+    if (!email || !otp || !newPassword || !confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'MISSING_FIELDS', message: 'Email, OTP, new password and confirmation are required' }
+      });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'PASSWORD_MISMATCH', message: 'Passwords do not match' }
+      });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'WEAK_PASSWORD', message: 'Password must be at least 8 characters long' }
+      });
+    }
+
+    try {
+      const result = await AuthController._findValidResetOtp(email, otp);
+      if (!result.ok) {
+        return res.status(result.status).json({ success: false, error: result.error });
+      }
+
+      const { user, otpRecord } = result;
+      const passwordHash = await bcrypt.hash(newPassword, 12);
+
+      await sequelize.transaction(async (t) => {
+        user.passwordHash = passwordHash;
+        await user.save({ transaction: t });
+
+        otpRecord.verifiedAt = new Date();
+        await otpRecord.save({ transaction: t });
+      });
+
+      return res.status(200).json({
+        success: true,
+        data: { message: 'Password updated successfully. You can now sign in with your new password.' }
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // Shared helper: locate and validate the latest unused PASSWORD_RESET OTP.
+  // Returns { ok, user, otpRecord } on success, or { ok:false, status, error }.
+  static async _findValidResetOtp(email, otp) {
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      return { ok: false, status: 400, error: { code: 'INVALID_OTP', message: 'Invalid or expired code' } };
+    }
+
+    const otpRecord = await Otp.findOne({
+      where: { userId: user.id, purpose: 'PASSWORD_RESET', verifiedAt: null },
+      order: [['createdAt', 'DESC']]
+    });
+
+    if (!otpRecord || new Date() > otpRecord.expiresAt) {
+      return { ok: false, status: 400, error: { code: 'OTP_EXPIRED', message: 'OTP expired or unavailable' } };
+    }
+
+    if (otpRecord.attempts >= MAX_OTP_ATTEMPTS) {
+      return { ok: false, status: 429, error: { code: 'TOO_MANY_ATTEMPTS', message: 'Too many invalid attempts. Request a new code.' } };
+    }
+
+    const matches = await bcrypt.compare(otp, otpRecord.otpHash);
+    if (!matches) {
+      otpRecord.attempts += 1;
+      await otpRecord.save();
+      return { ok: false, status: 400, error: { code: 'INVALID_OTP', message: 'Provided code is incorrect' } };
+    }
+
+    return { ok: true, user, otpRecord };
   }
 }
 

@@ -3,18 +3,11 @@ const { Op } = require('sequelize');
 const { Wallet, TokenLedger, StripeWebhookEvent, Subscription, Plan, User, sequelize } = require('../models');
 const TokenService = require('../services/token.service');
 
-// ---------------------------------------------------------------------------
-// Safe date helpers – handles both old and new Stripe API shapes
-// Old API (<=2025-03-30): subscription.current_period_start  (Unix int)
-// New API (>=2025-03-31): subscription.items.data[0].current_period_start
-// ---------------------------------------------------------------------------
 function getPeriodStart(sub) {
-  // Top-level field (API <= 2025-03-30)
+ 
   if (sub.current_period_start) return new Date(sub.current_period_start * 1000);
-  // Item-level field (API >= 2025-03-31)
   const ts = sub.items?.data?.[0]?.current_period_start;
   if (ts) return new Date(ts * 1000);
-  // Last-resort fallback: now
   console.warn('WARNING: could not read period_start from subscription, using now()');
   return new Date();
 }
@@ -23,7 +16,6 @@ function getPeriodEnd(sub) {
   if (sub.current_period_end) return new Date(sub.current_period_end * 1000);
   const ts = sub.items?.data?.[0]?.current_period_end;
   if (ts) return new Date(ts * 1000);
-  // fallback: 30 days from now
   console.warn('WARNING: could not read period_end from subscription, using +30 days');
   return new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 }
@@ -106,11 +98,6 @@ class WalletController {
 
     try {
       switch (event.type) {
-
-        // ----------------------------------------------------------------
-        // checkout.session.completed
-        // The primary entry point: user finishes paying on Stripe Checkout
-        // ----------------------------------------------------------------
         case 'checkout.session.completed': {
           const session = event.data.object;
           if (session.mode !== 'subscription') break;
@@ -119,7 +106,6 @@ class WalletController {
                       'email:', session.customer_details?.email);
           console.log('[checkout.session.completed] metadata:', session.metadata);
 
-          // --- resolve userId ---
           let userId = session.metadata?.userId;
           if (!userId) {
             const email = session.customer_details?.email;
@@ -130,7 +116,6 @@ class WalletController {
             console.log('[checkout] resolved userId by email:', userId);
           }
 
-          // --- retrieve full subscription from Stripe ---
           const stripeSub = await stripe.subscriptions.retrieve(session.subscription, {
             expand: ['items.data']
           });
@@ -140,7 +125,6 @@ class WalletController {
 
           const priceId = stripeSub.items.data[0].price.id;
 
-          // --- resolve planId ---
           let planId = session.metadata?.planId;
           let plan = planId ? await Plan.findByPk(planId) : null;
           if (!plan) {
@@ -155,7 +139,6 @@ class WalletController {
           console.log('[checkout] periodStart:', periodStart, 'periodEnd:', periodEnd);
 
           await sequelize.transaction(async (t) => {
-            // Cancel previous active subs for this user
             await Subscription.update(
               { status: 'CANCELED' },
               { where: { userId, status: 'ACTIVE', stripeSubscriptionId: { [Op.ne]: stripeSub.id } }, transaction: t }
@@ -199,9 +182,6 @@ class WalletController {
           break;
         }
 
-        // ----------------------------------------------------------------
-        // customer.subscription.created  (backup path, rarely needed)
-        // ----------------------------------------------------------------
         case 'customer.subscription.created': {
           const stripeSub = event.data.object;
           const userId  = stripeSub.metadata?.userId;
@@ -244,9 +224,6 @@ class WalletController {
           break;
         }
 
-        // ----------------------------------------------------------------
-        // customer.subscription.updated
-        // ----------------------------------------------------------------
         case 'customer.subscription.updated': {
           const stripeSub = event.data.object;
           const sub = await Subscription.findOne({ where: { stripeSubscriptionId: stripeSub.id } });
@@ -261,9 +238,6 @@ class WalletController {
           break;
         }
 
-        // ----------------------------------------------------------------
-        // invoice.payment_succeeded / invoice.paid  (renewal credit)
-        // ----------------------------------------------------------------
         case 'invoice.payment_succeeded':
         case 'invoice.paid': {
           const invoice = event.data.object;
@@ -295,9 +269,6 @@ class WalletController {
           break;
         }
 
-        // ----------------------------------------------------------------
-        // invoice.payment_failed
-        // ----------------------------------------------------------------
         case 'invoice.payment_failed': {
           const invoice = event.data.object;
           if (invoice.subscription) {
@@ -309,9 +280,6 @@ class WalletController {
           break;
         }
 
-        // ----------------------------------------------------------------
-        // customer.subscription.deleted
-        // ----------------------------------------------------------------
         case 'customer.subscription.deleted': {
           await Subscription.update(
             { status: 'CANCELED' },

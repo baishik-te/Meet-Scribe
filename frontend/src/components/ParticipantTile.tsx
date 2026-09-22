@@ -3,29 +3,17 @@ import { Track } from 'livekit-client';
 import type { Participant } from 'livekit-client';
 
 interface ParticipantTileProps {
-  /** The LiveKit participant (remote or local) this tile represents. */
+  
   participant: Participant;
-  /** Display name shown in the tile's name badge. */
+  
   displayName: string;
-  /**
-   * When true, the tile's audio is not attached (used for the local self-view
-   * so the user does not hear their own microphone echoed back).
-   */
+  
   muteAudio?: boolean;
-  /** Optional suffix appended to the name badge, e.g. "(You)". */
+  
   badgeSuffix?: string;
 }
 
-/**
- * ParticipantTile renders one participant's camera feed and, for remote
- * participants, attaches their microphone track so they can be heard.
- *
- * The previous implementation only attached the first remote *video* track to a
- * single element and never attached audio at all — so participants could never
- * hear each other. This component attaches BOTH the camera (video) and
- * microphone (audio) tracks for its participant, and re-attaches whenever tracks
- * are (un)subscribed or (un)muted.
- */
+
 export const ParticipantTile: React.FC<ParticipantTileProps> = ({
   participant,
   displayName,

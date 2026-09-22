@@ -45,7 +45,7 @@ module.exports = {
       }
     ]);
 
-    // 2. Initialize corresponding Wallets for each account
+    // 2. Wallets 
     await queryInterface.bulkInsert('wallets', [
       {
         id: uuidv4(),

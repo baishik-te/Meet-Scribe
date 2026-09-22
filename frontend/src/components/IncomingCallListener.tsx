@@ -3,24 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api/client';
 import { useSocket } from '../context/SocketContext';
 
-/**
- * Payload emitted by the backend on `call:incoming` (see UserController.initiateCall).
- */
+
 interface IncomingCall {
   callId: string;
   roomName: string;
   caller: { id: string; name: string };
 }
 
-/**
- * IncomingCallListener — app-wide receiver-side call notification.
- *
- * Mounted inside the Router so it can navigate. When the socket emits
- * `call:incoming`, a ringing banner is shown with Accept / Decline. Accepting
- * calls `POST /user/calls/accept` to transition the call to ACTIVE and obtain a
- * LiveKit token, then navigates into the Call_Room. Declining dismisses the
- * banner locally.
- */
+
 export const IncomingCallListener: React.FC = () => {
   const { socket } = useSocket();
   const navigate = useNavigate();
@@ -37,7 +27,6 @@ export const IncomingCallListener: React.FC = () => {
       setIncoming(data);
     };
 
-    // If the caller cancels / the call ends before it's answered, clear the banner.
     const handleEnded = () => {
       setIncoming(null);
       setAccepting(false);

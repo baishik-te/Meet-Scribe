@@ -42,7 +42,6 @@ const sendOTP = async (to, otp, subject = 'Your Account Verification Code') => {
   };
 
   try {
-    // In development mode without proper SMTP config, just log the OTP
     if (process.env.NODE_ENV === 'development' && (!process.env.SMTP_USER || !process.env.SMTP_PASS)) {
       console.log(`[DEV MODE] OTP for ${to}: ${otp}`);
       console.log(`[DEV MODE] Email would be sent in production with proper SMTP configuration`);
@@ -56,7 +55,6 @@ const sendOTP = async (to, otp, subject = 'Your Account Verification Code') => {
   } catch (error) {
     console.error('Failed to send OTP email:', error);
     
-    // In development mode, don't fail the registration due to email issues
     if (process.env.NODE_ENV === 'development') {
       console.log(`[DEV MODE] Email sending failed but continuing registration. OTP: ${otp}`);
       return { messageId: 'dev-fallback-message-id' };

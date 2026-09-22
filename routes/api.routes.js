@@ -7,20 +7,19 @@ const authenticate = require('../middleware/auth.middleware');
 const userRoutes = require('./user.routes');
 const adminRoutes = require('./admin.routes');
 
-// Note: Stripe webhook is handled directly in index.js before JSON parsing
-// This is required because Stripe needs the raw body for signature verification
-
 router.use(express.json());
 router.use(express.urlencoded({ extended: true }));
 
 // Auth
 router.post('/auth/register', AuthController.register);
-router.post('/auth/verify-email', AuthController.verifyEmail); // Legacy endpoint - kept for backward compatibility
+router.post('/auth/verify-email', AuthController.verifyEmail);
 router.post('/auth/login', AuthController.login);
 router.get('/auth/me', authenticate, AuthController.me);
 
-// Alternative OTP endpoints in user routes (recommended for new implementations)
-// /user/otp/resend and /user/otp/verify
+// Password reset (forgot password) flow
+router.post('/auth/forgot-password', AuthController.forgotPassword);
+router.post('/auth/verify-reset-otp', AuthController.verifyResetOtp);
+router.post('/auth/reset-password', AuthController.resetPassword);
 
 // Debug endpoint - remove in production
 if (process.env.NODE_ENV === 'development') {

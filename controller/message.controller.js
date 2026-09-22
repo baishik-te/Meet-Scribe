@@ -4,11 +4,7 @@ const SocketService = require('../services/socket.service');
 
 
 class MessageController {
-  /**
-   * Resolve an ACCEPTED connection the requester belongs to, returning the
-   * connection and the id of the other participant. Returns null if not found
-   * or the requester is not a participant.
-   */
+
   static async resolveConnection(connectionId, userId) {
     const connection = await Connection.findOne({
       where: {
@@ -23,9 +19,6 @@ class MessageController {
     return { connection, otherUserId };
   }
 
-  // GET /user/connections/:connectionId/messages
-  // Returns the full chronological thread and marks the requester's inbound
-  // messages as read.
   static async getMessages(req, res, next) {
     const { connectionId } = req.params;
     try {
@@ -62,7 +55,7 @@ class MessageController {
     }
   }
 
-  // POST /user/connections/:connectionId/messages  { body }
+  // POST /user/connections/:connectionId/messages 
   static async sendMessage(req, res, next) {
     const { connectionId } = req.params;
     const { body } = req.body;
@@ -108,7 +101,6 @@ class MessageController {
   }
 
   // GET /user/messages/summary
-  // Per-connection last message + unread count, for the conversation sidebar.
   static async getSummary(req, res, next) {
     try {
       const connections = await Connection.findAll({
@@ -157,8 +149,7 @@ class MessageController {
     }
   }
 
-  // POST /user/connections/:connectionId/typing  { typing: boolean }
-  // Ephemeral typing indicator relay (no persistence).
+  // POST /user/connections/:connectionId/typing
   static async setTyping(req, res, next) {
     const { connectionId } = req.params;
     const { typing } = req.body;

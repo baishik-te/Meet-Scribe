@@ -1,10 +1,9 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 
-const MODEL = process.env.GEMINI_MODEL || 'gemini-3.5-flash';
+const MODEL = process.env.GEMINI_MODEL || 'gemini-3.0-flash';
 
-// Accept either GEMINI_API_KEY or GOOGLE_API_KEY (the name used in the agent
-// architecture diagram). GEMINI_API_KEY wins if both are set.
+// Gemini Key
 function readApiKey() {
   const key = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
   if (!key || key === 'your_gemini_api_key_here') return null;
@@ -33,10 +32,6 @@ class GeminiService {
     return Boolean(readApiKey());
   }
 
-  /**
-   * Detect quota / rate-limit errors so the caller can fall back to whisper.
-   * Matches HTTP 429, RESOURCE_EXHAUSTED, and the free-tier quota message.
-   */
   static isQuotaError(err) {
     if (!err) return false;
     const msg = err.message || String(err);
@@ -48,10 +43,6 @@ class GeminiService {
     );
   }
 
-  /**
-   * Parse the "Please retry in 46.28s" hint from a quota error, in ms.
-   * Returns null when no hint is present.
-   */
   static parseRetryMs(err) {
     const msg = (err && err.message) || '';
     const m = msg.match(/retry in ([\d.]+)\s*s/i);
@@ -59,12 +50,7 @@ class GeminiService {
     return null;
   }
 
-  /**
-   * Summarize a full call transcript into a concise, structured summary.
-   *
-   * @param {string} transcript  The transcript text (speaker-prefixed lines).
-   * @returns {Promise<string>}   Markdown-ish summary text.
-   */
+  
   static async summarizeTranscript(transcript) {
     const model = getClient().getGenerativeModel({ model: MODEL });
 

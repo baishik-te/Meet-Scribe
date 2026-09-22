@@ -27,15 +27,6 @@ function loadFavorites(): Set<string> {
   }
 }
 
-/**
- * Messages page — a modern Teams-style chat interface.
- *
- * Reuses every existing connection endpoint verbatim (search / send / respond /
- * cancel / block / unblock / call-initiate) and the existing Socket.IO channel.
- * Real 1:1 messaging is backed by the additive /user/connections/:id/messages
- * endpoints via the `useMessages` hook. Mounted at the existing /connections
- * route inside the shared AppShell (global Nav_Rail preserved).
- */
 export const Connections: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();

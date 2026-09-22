@@ -1,32 +1,26 @@
 // View models describing the shapes returned by the real API.
-// These replace the current `any[]` usages across redesigned pages.
-//
-// The `User` interface is defined in and reused from `AuthContext.tsx`.
-// Re-exported here for convenience so pages can import a single type module.
 import type { User } from '../context/AuthContext';
 
 export type { User };
 
-/** GET /user/connections -> data.connections[] */
+// GET /user/connections -> data.connections[] 
 export interface ConnectionVM {
   id: string;
   status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'BLOCKED';
   myRole: 'SENDER' | 'RECEIVER';
   contact: { id: string; name: string; email: string };
-  // Meetings page also derives partner via requester/receiver on some shapes
   requester?: { id: string; name: string; email: string };
   receiver?: { id: string; name: string; email: string };
   receiverId?: string;
 }
 
-/** GET /user/connections/search -> data.users[] */
+// GET /user/connections/search -> data.users[] 
 export interface SearchUserVM {
   id: string;
   name: string;
   email: string;
 }
 
-/** A single direct message within an accepted connection thread. */
 export interface MessageVM {
   id: string;
   connectionId: string;
@@ -38,7 +32,7 @@ export interface MessageVM {
   updatedAt?: string;
 }
 
-/** GET /user/messages/summary -> data.summaries[] (per-connection preview) */
+// GET /user/messages/summary -> data.summaries[]
 export interface MessageSummaryVM {
   connectionId: string;
   lastMessage: {
@@ -50,7 +44,7 @@ export interface MessageSummaryVM {
   unreadCount: number;
 }
 
-/** GET /user/plans -> data.plans[] */
+// GET /user/plans -> data.plans[]
 export interface PlanVM {
   id: string;
   name: string;
@@ -62,7 +56,7 @@ export interface PlanVM {
   geminiRatePerRequest: number;
 }
 
-/** GET /user/subscription -> data.subscription */
+// GET /user/subscription -> data.subscription 
 export interface SubscriptionVM {
   planId: string;
   status: string;
@@ -70,7 +64,6 @@ export interface SubscriptionVM {
   plan: PlanVM;
 }
 
-/** GET /user/wallet/ledger -> data.entries[] */
 export interface LedgerEntryVM {
   id: string;
   createdAt: string;
@@ -79,15 +72,15 @@ export interface LedgerEntryVM {
   balanceAfter?: number;
 }
 
-/** CallRoom chat/transcription list item */
+// CallRoom chat/transcription list item 
 export interface ChatMessageVM {
   id: string;
-  sender: string; // speakerName
+  sender: string; 
   text: string;
-  self: boolean; // sender === user?.name
+  self: boolean; 
 }
 
-/** Pre-join -> Call handoff */
+// Pre-join -> Call handoff 
 export interface PreJoinConfig {
   callId: string | null;
   room: string;

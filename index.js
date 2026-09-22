@@ -1,4 +1,5 @@
 ﻿require('dotenv').config();
+
 const http = require('http');
 const express = require('express');
 const cors = require('cors');
@@ -14,65 +15,96 @@ const { verifySMTPConnection } = require('./services/email.service');
 const app = express();
 const server = http.createServer(app);
 
+// ===============================
+// Socket.IO
+// ===============================
 const io = new Server(server, {
   cors: {
-    origin: [
-      process.env.CLIENT_URL || 'http://localhost:5173',
-      'http://192.168.0.100:5173',
-      'http://localhost:5173'
-    ],
-    methods: ['GET', 'POST'],
-    credentials: true
+    origin: '*',
+    methods: ['GET', 'POST']
   }
 });
 
 socketService.init(io);
 
+// ===============================
+// Express CORS
+// ===============================
 app.use(cors({
-  origin: [
-    process.env.CLIENT_URL || 'http://localhost:5173',
-    'http://192.168.0.100:5173',
-    'http://localhost:5173'
-  ],
-  credentials: true
+  origin: '*'
 }));
 
-// Stripe webhook needs raw body - must be BEFORE express.json()
-// Registered at both paths so Stripe Dashboard + Stripe CLI both work
-const webhookHandler = require('./controller/wallet.controller').handleStripeWebhook;
-app.post('/api/v1/webhooks/stripe', express.raw({ type: 'application/json' }), webhookHandler);
-app.post('/webhooks/stripe',        express.raw({ type: 'application/json' }), webhookHandler);
+// ===============================
+// Stripe webhook
+// IMPORTANT: Must come before express.json()
+// ===============================
+const webhookHandler =
+  require('./controller/wallet.controller').handleStripeWebhook;
 
-// Body parsing middleware for all other routes
+app.post(
+  '/api/v1/webhooks/stripe',
+  express.raw({ type: 'application/json' }),
+  webhookHandler
+);
+
+app.post(
+  '/webhooks/stripe',
+  express.raw({ type: 'application/json' }),
+  webhookHandler
+);
+
+// ===============================
+// Body parsing middleware
+// ===============================
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// ===============================
+// API Routes
+// ===============================
 app.use('/api/v1', apiRoutes);
+
+// ===============================
+// Error middleware
+// ===============================
 app.use(errorMiddleware);
 
+// ===============================
+// Start server
+// ===============================
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
   try {
     await sequelize.authenticate();
-    console.log('PostgreSQL Database connected successfully via Sequelize.');
-    
-    // Verify SMTP connection
+
+    console.log(
+      'PostgreSQL Database connected successfully via Sequelize.'
+    );
+
     try {
       await verifySMTPConnection();
     } catch (error) {
-      console.warn('SMTP verification failed, but server will continue:', error.message);
+      console.warn(
+        'SMTP verification failed, but server will continue:',
+        error.message
+      );
     }
-    
+
     initCallBilling();
+
     server.listen(PORT, () => {
-      console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
-      console.log(`CORS enabled for origins: localhost:5173, 192.168.0.100:5173`);
+      console.log(
+        `Server running in ${
+          process.env.NODE_ENV || 'development'
+        } mode on port ${PORT}`
+      );
+
+      console.log('CORS enabled for all origins: *');
     });
   } catch (error) {
     console.error('Failed to initialize server:', error);
     process.exit(1);
   }
 };
-
 startServer();

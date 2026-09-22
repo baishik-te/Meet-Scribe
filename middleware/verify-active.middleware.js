@@ -8,7 +8,6 @@ const verifyActive = (req, res, next) => {
       });
     }
 
-    // Check if user is ACTIVE and email is verified
     if (req.user.status !== 'ACTIVE') {
       return res.status(403).json({
         success: false,

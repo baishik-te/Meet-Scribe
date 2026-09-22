@@ -5,7 +5,6 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true
     },
-    // The accepted connection this message belongs to (1:1 chat thread).
     connectionId: {
       type: DataTypes.UUID,
       allowNull: false
@@ -22,7 +21,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT,
       allowNull: false
     },
-    // When the receiver has read the message. NULL = unread.
     readAt: {
       type: DataTypes.DATE,
       allowNull: true

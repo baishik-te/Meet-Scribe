@@ -1,10 +1,9 @@
 'use strict';
 
-// MeetScribe AI (RAG PDF-chat) schema: documents, document_chunks (with a
-// pgvector embedding column + HNSW cosine index), and chat_messages.
+// MeetScribe AI (RAG PDF-chat)
 module.exports = {
   async up(queryInterface, Sequelize) {
-    // ── documents ──────────────────────────────────────────────────────────
+    
     await queryInterface.createTable('documents', {
       id: {
         type: Sequelize.UUID,
@@ -33,7 +32,6 @@ module.exports = {
       updated_at: { type: Sequelize.DATE, allowNull: false }
     });
 
-    // ── document_chunks (raw SQL for the VECTOR column + HNSW index) ─────────
     await queryInterface.sequelize.query(`
       CREATE TABLE document_chunks (
         id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -58,7 +56,7 @@ module.exports = {
       ON document_chunks USING hnsw (embedding vector_cosine_ops);
     `);
 
-    // ── chat_messages ────────────────────────────────────────────────────────
+    // chat_messages 
     await queryInterface.createTable('chat_messages', {
       id: {
         type: Sequelize.UUID,

@@ -1,7 +1,6 @@
 import React from 'react';
 import { VideoIcon } from './icons';
 
-/** Polished placeholder shown when no conversation is selected. */
 export const EmptyChatState: React.FC = () => (
   <div className="msgx-empty">
     <span className="msgx-empty__icon">

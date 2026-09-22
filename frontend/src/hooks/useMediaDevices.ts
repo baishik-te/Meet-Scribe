@@ -1,38 +1,9 @@
-// useMediaDevices — centralizes the browser Media Capture APIs for the
-// pre-join flow and in-call media handling.
-//
-// Owns the `MediaDeviceState` (status, device lists, selections, toggle flags,
-// preview stream and any mapped error) and exposes actions to request a
-// preview, enumerate devices, pick a specific camera/mic, toggle each track,
-// retry after a failure, and stop/clean up tracks.
-//
-// Browser DOMExceptions are translated into user-facing `MediaError`s via the
-// exported `mapMediaError` helper so callers can render a device name plus
-// remediation steps.
-//
-// Design: section 8 — `PreJoinScreen` + `useMediaDevices` hook.
-// Requirements: 7.2, 7.4, 7.5, 7.6, 7.8, 10.2, 10.3, 10.4.
+
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { MediaDeviceState, MediaError } from '../types/media';
 
-/** Which device a media request/error concerns. */
 type MediaDeviceTarget = MediaError['device'];
 
-/**
- * Translate a browser `DOMException` (or unknown throwable) into a user-facing
- * `MediaError`. The mapping is:
- *
- *   NotAllowedError       -> 'denied'          (permission refused)
- *   NotFoundError         -> 'notFound'        (no matching device)
- *   NotReadableError      -> 'inUse'           (hardware busy / in use)
- *   OverconstrainedError  -> 'overconstrained' (constraints unsatisfiable)
- *   anything else / none  -> 'unknown'
- *
- * The returned `message` always names the affected device and includes
- * remediation steps so the UI can surface actionable guidance.
- *
- * Requirements: 7.5, 7.6, 10.2, 10.3, 10.4.
- */
 export function mapMediaError(
   exception: unknown,
   device: MediaDeviceTarget
@@ -107,24 +78,24 @@ function deviceLabel(device: MediaDeviceTarget): string {
   }
 }
 
-/** Public shape of the hook (Design section 8, `UseMediaDevices`). */
+// Public shape of the hook
 export interface UseMediaDevices {
   state: MediaDeviceState;
-  /** getUserMedia with selected constraints; requested on mount within ~1s (Req 7.2). */
+  
   requestPreview: () => Promise<void>;
-  /** enumerateDevices to populate camera/microphone pickers (Req 7.8). */
+ 
   enumerate: () => Promise<void>;
-  /** Select a specific camera and re-request the preview (Req 7.8, ≤2s). */
+ 
   selectCamera: (deviceId: string) => void;
-  /** Select a specific microphone and re-request the preview (Req 7.8). */
+  
   selectMic: (deviceId: string) => void;
-  /** Toggle the local camera enabled flag (Req 7.4). */
+ 
   toggleCamera: () => void;
-  /** Toggle the local microphone enabled flag (Req 7.4). */
+  
   toggleMic: () => void;
-  /** Re-request access after a failure (Req 7.6). */
+ 
   retry: () => Promise<void>;
-  /** Stop preview tracks and clean up (called on unmount / handoff). */
+  
   stop: () => void;
 }
 
@@ -161,19 +132,10 @@ function unavailableError(device: MediaDeviceTarget): MediaError {
   };
 }
 
-/**
- * `useMediaDevices` — see {@link UseMediaDevices}.
- *
- * On mount it requests camera + microphone within ~1s (Req 7.2). Toggles only
- * flip local enabled flags and mirror them onto live tracks so preview state
- * reflects intent before joining (Req 7.4). Errors are surfaced through the
- * mapped `MediaError` in state and never throw to the caller.
- */
+
 export function useMediaDevices(): UseMediaDevices {
   const [state, setState] = useState<MediaDeviceState>(INITIAL_STATE);
 
-  // Refs mirror the current stream + selections/flags so async callbacks and
-  // the unmount cleanup can act on the latest values without stale closures.
   const streamRef = useRef<MediaStream | null>(null);
   const selectedCameraRef = useRef<string | undefined>(undefined);
   const selectedMicRef = useRef<string | undefined>(undefined);
@@ -181,7 +143,6 @@ export function useMediaDevices(): UseMediaDevices {
   const micEnabledRef = useRef<boolean>(true);
   const mountedRef = useRef<boolean>(true);
 
-  /** Stop every track on the current preview stream and drop the reference. */
   const stopStream = useCallback(() => {
     const stream = streamRef.current;
     if (stream) {
@@ -196,11 +157,6 @@ export function useMediaDevices(): UseMediaDevices {
     setState((prev) => ({ ...prev, previewStream: null }));
   }, [stopStream]);
 
-  /**
-   * Core request: acquire a stream for the current selections/flags, mirror the
-   * enabled flags onto its tracks, and store it. Any failure is mapped to a
-   * `MediaError` and stored in state (no throw).
-   */
   const requestPreview = useCallback(async () => {
     if (mediaDevicesUnavailable()) {
       if (!mountedRef.current) return;
@@ -229,14 +185,12 @@ export function useMediaDevices(): UseMediaDevices {
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
-
-      // If the hook unmounted mid-request, discard the fresh stream.
+      
       if (!mountedRef.current) {
         stream.getTracks().forEach((track) => track.stop());
         return;
       }
 
-      // Mirror the local enabled flags onto the acquired tracks.
       stream.getVideoTracks().forEach((t) => {
         t.enabled = cameraEnabledRef.current;
       });
@@ -253,9 +207,6 @@ export function useMediaDevices(): UseMediaDevices {
       }));
     } catch (err) {
       if (!mountedRef.current) return;
-      // Attribute the failure to the affected device(s). With both requested we
-      // report 'both'; OverconstrainedError from a specific selection points at
-      // that device.
       const device = errorDeviceContext(err, Boolean(camId), Boolean(micId));
       const mapped = mapMediaError(err, device);
       const status = mapped.kind === 'denied' ? 'denied' : 'error';
@@ -288,8 +239,6 @@ export function useMediaDevices(): UseMediaDevices {
         ...prev,
         cameras,
         microphones,
-        // Default the selection to the first available device of each type when
-        // none has been chosen yet.
         selectedCameraId: prev.selectedCameraId ?? cameras[0]?.deviceId,
         selectedMicId: prev.selectedMicId ?? microphones[0]?.deviceId,
       }));
@@ -300,7 +249,6 @@ export function useMediaDevices(): UseMediaDevices {
         selectedMicRef.current = microphones[0].deviceId;
       }
     } catch {
-      // Enumeration failures are non-fatal; leave the current lists intact.
     }
   }, []);
 
@@ -344,8 +292,6 @@ export function useMediaDevices(): UseMediaDevices {
     await requestPreview();
   }, [requestPreview]);
 
-  // On mount: request the preview within ~1s (Req 7.2) and enumerate devices so
-  // pickers can populate. On unmount: stop tracks (cleanup).
   useEffect(() => {
     mountedRef.current = true;
     void requestPreview();
@@ -354,8 +300,6 @@ export function useMediaDevices(): UseMediaDevices {
       mountedRef.current = false;
       stopStream();
     };
-    // requestPreview/enumerate/stopStream are stable (useCallback); run once.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return {
@@ -371,11 +315,6 @@ export function useMediaDevices(): UseMediaDevices {
   };
 }
 
-/**
- * Decide which device a getUserMedia failure concerns. When both audio+video
- * were requested we report 'both'; a device-specific constraint failure points
- * at the constrained device.
- */
 function errorDeviceContext(
   exception: unknown,
   hasCameraSelection: boolean,

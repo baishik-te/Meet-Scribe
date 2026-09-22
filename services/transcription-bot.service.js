@@ -13,15 +13,11 @@ const LIVEKIT_URL = process.env.LIVEKIT_URL || 'ws://localhost:7880';
 const SAMPLE_RATE = 16000;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-// Energy-based voice activity detection / utterance segmentation params.
-// Tuned to hand whisper complete phrases: too-short clips make base.en
-// hallucinate ("Thank you.", "you", etc.), so we require a minimum length and
-// wait for a clear pause before flushing.
-const SILENCE_RMS = 450;        // Int16 RMS below this counts as silence
-const SILENCE_HANG_MS = 700;    // trailing silence after speech → flush utterance
-const MAX_UTTERANCE_MS = 15000; // hard cap so long speech still gets flushed
-const MIN_UTTERANCE_MS = 700;   // ignore blips shorter than this (anti-hallucination)
-const LEADING_SILENCE_CAP_MS = 1500; // drop buffered leading silence beyond this
+const SILENCE_RMS = 450;        
+const SILENCE_HANG_MS = 700;    
+const MAX_UTTERANCE_MS = 15000; 
+const MIN_UTTERANCE_MS = 700;   
+const LEADING_SILENCE_CAP_MS = 1500; 
 
 function computeRms(int16) {
   if (int16.length === 0) return 0;
@@ -76,12 +72,6 @@ function writeWav(samples, sampleRate) {
   return p;
 }
 
-/**
- * One transcription bot per active call. It joins the call's LiveKit room as a
- * subscribe-only participant, reads each speaker's audio at 16 kHz mono,
- * segments it into utterances with simple energy VAD, transcribes each utterance
- * via Deepgram (falling back to whisper.cpp), then persists + broadcasts the result.
- */
 class TranscriptionBot {
   constructor(call) {
     this.call = call;
@@ -133,9 +123,6 @@ class TranscriptionBot {
   }
 
   processFrame(frame, state, participant) {
-    // Capture the REAL stream format. The resampler may not honour the requested
-    // 16 kHz mono; writing a wrong WAV header (e.g. 16 kHz over 48 kHz data)
-    // plays speech at the wrong speed and makes whisper transcribe gibberish.
     state.rate = frame.sampleRate || state.rate;
     state.channels = frame.channels || 1;
 
@@ -226,13 +213,11 @@ class TranscriptionBot {
   }
 }
 
-// ── Manager: one bot per callId ──────────────────────────────────────────────
+// Manager: one bot per callId
 const bots = new Map();
 
 module.exports = {
   isAvailable: () => SttService.isAvailable(),
-
-  /** Start a bot for a call (idempotent). No-op if no STT engine is available. */
   async startForCall(call) {
     if (!call || bots.has(call.id)) return;
     const engines = SttService.enginesAvailable();
@@ -254,7 +239,6 @@ module.exports = {
     }
   },
 
-  /** Stop and clean up the bot for a call. */
   async stopForCall(callId) {
     const bot = bots.get(callId);
     if (!bot) return;

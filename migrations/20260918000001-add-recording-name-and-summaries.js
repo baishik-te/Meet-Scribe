@@ -2,14 +2,11 @@
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    // 1. Editable, user-facing name for a saved recording.
     await queryInterface.addColumn('recordings', 'name', {
       type: Sequelize.STRING,
       allowNull: true
     });
 
-    // 2. Gemini-generated summaries of a call's transcript. One row per
-    //    generation; the latest (by created_at) is treated as current.
     await queryInterface.createTable('summaries', {
       id: {
         type: Sequelize.UUID,

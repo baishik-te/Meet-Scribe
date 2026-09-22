@@ -1,20 +1,4 @@
 // CallRoom — full-screen Teams call surface.
-//
-// Phase model: `prejoin` → `connecting` → `in-call`. The LiveKit `Room` is NOT
-// created or connected until the user confirms on the `PreJoinScreen`
-// (Requirement 7.1). On confirm, the assembled `PreJoinConfig` (selected device
-// IDs + enabled flags) is applied to the room:
-//   - `enableCameraAndMicrophone()` then `setCameraEnabled` / `setMicrophoneEnabled`
-//     honoring `config.cameraEnabled` / `config.micEnabled`, using
-//     `selectedCameraId` / `selectedMicId` as capture constraints (Requirement 7.7).
-//
-// Preserves: `VITE_LIVEKIT_URL || ws://127.0.0.1:7880`, `RoomEvent.TrackSubscribed`
-// (attach remote video to the stage, Requirement 8.14), `RoomEvent.Disconnected`
-// → `/dashboard`, and a self-view region visually distinct from and
-// non-overlapping with the main stage (Requirement 8.15).
-//
-// Design: section 9 — `CallRoom` redesign; section 8 — `PreJoinScreen` handoff.
-// Requirements: 7.1, 7.7, 8.14, 8.15.
 import React, { useEffect, useRef, useState } from 'react';
 import { Room, RoomEvent, VideoPresets } from 'livekit-client';
 import type { RemoteParticipant } from 'livekit-client';
@@ -47,19 +31,13 @@ export const CallRoom: React.FC = () => {
   const [phase, setPhase] = useState<CallPhase>('prejoin');
   const [room, setRoom] = useState<Room | null>(null);
 
-  // Remote participants currently in the room. Kept in state so the gallery
-  // re-renders when peers join/leave; each tile attaches its own tracks.
+ 
   const [remoteParticipants, setRemoteParticipants] = useState<RemoteParticipant[]>([]);
 
-  // The connected local participant, used to render the self-view tile.
   const [localParticipant, setLocalParticipant] = useState<Room['localParticipant'] | null>(null);
 
-  // Connection failure surfaced on the pre-join screen (e.g. media server down).
   const [connectError, setConnectError] = useState<string | null>(null);
 
-  // Single source of truth for the Call_Toolbar controls (Design section 9).
-  // Camera/Mic/Screen/Record/Chat drive real side effects with rollback;
-  // Raise/React/People/View are local-only UI state (Requirement 8.11).
   const [toolbar, setToolbar] = useState<CallToolbarState>({
     cameraEnabled: true,
     micEnabled: true,
@@ -73,60 +51,34 @@ export const CallRoom: React.FC = () => {
     viewMode: 'gallery',
   });
 
-  // Controls that are disabled because their device was denied/in-use during
-  // the call — the control stays disabled and the call stays connected
-  // (Requirements 10.2, 10.4).
   const [cameraDisabled, setCameraDisabled] = useState(false);
   const [micDisabled, setMicDisabled] = useState(false);
-
-  // Non-blocking inline error surface for toolbar failures (replaces alert()).
   const [toolbarError, setToolbarError] = useState<string | null>(null);
-  // Non-blocking info surface (e.g. "Recording saved").
   const [infoNotice, setInfoNotice] = useState<string | null>(null);
-
-  // True when a screen share is being presented (drives the speaker layout).
   const [screenActive, setScreenActive] = useState(false);
 
-  // Inline surface for a server-initiated `call:terminated` event. When set, the
-  // message is shown via InlineNotice (non-blocking, replacing the old alert())
-  // and the user is redirected to /dashboard within 3s (Requirements 10.5, 10.6).
   const [terminationMessage, setTerminationMessage] = useState<string | null>(null);
-  // Hold the redirect timer so it can be cleared on unmount (no navigate-after-unmount).
   const terminationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Raw chat/transcription entries; `self` is derived per-render from `user`
-  // via `toChatMessageVM` (Requirement 9.6) so the list re-classifies if the
-  // user identity changes without needing to rewrite stored messages.
-  // Live transcriptions (upper panel) arrive from the whisper bot via the
-  // `transcription:new` socket event. Chat messages (lower panel) are ephemeral
-  // and exchanged peer-to-peer over the LiveKit data channel.
   const [transcripts, setTranscripts] = useState<Array<{ id: string; sender: string; text: string }>>([]);
   const [chatMessages, setChatMessages] = useState<Array<{ id: string; sender: string; text: string; self: boolean }>>([]);
   const [inputText, setInputText] = useState('');
 
-  // Hold the connected room across handlers/cleanup without racing setState.
+
   const roomRef = useRef<Room | null>(null);
-  // True only once connect() has succeeded. Guards the Disconnected handler so a
-  // failed/aborted initial connect does NOT navigate the user to /dashboard.
+  
   const hasConnectedRef = useRef(false);
-  // True when the user (or server) intentionally ends the call, so we know a
-  // disconnect should navigate away rather than surface a "lost connection".
+ 
   const intentionalLeaveRef = useRef(false);
-  // Active client-side meeting recorder (when running). Live transcription is
-  // handled server-side by a whisper bot; the toggle just flips the call flag.
+  
   const recorderRef = useRef<CallRecorder | null>(null);
 
-  // Wire socket handlers once we have a connected room. These are preserved
-  // from the original implementation (join:room emit, call:terminated,
-  // transcription:new). Follow-up task 14.4 will refine call:terminated.
   useEffect(() => {
     if (phase !== 'in-call' || !socket) return;
 
     socket.emit('join:room', initialRoom);
 
     const handleTerminated = (data: { message: string }) => {
-      // Surface the event message inline (non-blocking) rather than via alert(),
-      // then disconnect and navigate to /dashboard within 3s (Req 10.5, 10.6).
+    
       setTerminationMessage(data.message || 'This call has ended.');
       intentionalLeaveRef.current = true;
       roomRef.current?.disconnect();
@@ -155,8 +107,7 @@ export const CallRoom: React.FC = () => {
     };
   }, [phase, socket, initialRoom, navigate]);
 
-  // Receive peer chat messages over the LiveKit data channel (ephemeral, not
-  // persisted). Kept separate from transcriptions so the two panels don't mix.
+
   useEffect(() => {
     if (!room) return;
     const decoder = new TextDecoder();
@@ -170,7 +121,6 @@ export const CallRoom: React.FC = () => {
           ]);
         }
       } catch {
-        /* ignore non-chat data packets */
       }
     };
     room.on(RoomEvent.DataReceived, handleData);
@@ -204,8 +154,6 @@ export const CallRoom: React.FC = () => {
     });
   };
 
-  // Confirm handoff from PreJoinScreen: create the room, connect, and apply the
-  // selected devices + enabled flags (Requirements 7.1, 7.7).
   const handlePreJoinConfirm = async (config: PreJoinConfig) => {
     if (!config.token) {
       setConnectError('Cannot join call: the video session token is missing. Please start the call again.');
@@ -230,12 +178,8 @@ export const CallRoom: React.FC = () => {
       }
     });
 
-    // Keep the participant gallery in sync with the room roster. Each of these
-    // events changes who is present or which of their tracks exist; the tiles
-    // themselves attach the actual media.
+
     const syncParticipants = () => {
-      // Hide the server-side transcription bot (identity `transcriber-<callId>`)
-      // — it subscribes to audio only and should not appear as a participant.
       setRemoteParticipants(
         Array.from(lkRoom.remoteParticipants.values()).filter(
           (p) => !p.identity?.startsWith('transcriber-')
@@ -251,10 +195,6 @@ export const CallRoom: React.FC = () => {
     lkRoom.on(RoomEvent.TrackUnpublished, syncParticipants);
 
     lkRoom.on(RoomEvent.Disconnected, () => {
-      // A failed/aborted initial connect also fires Disconnected. Only leave the
-      // page when we had actually connected AND the disconnect was intentional
-      // (user pressed Leave, or the server terminated the call). Otherwise stay
-      // and let the user retry from the pre-join screen.
       if (hasConnectedRef.current && intentionalLeaveRef.current) {
         navigate('/dashboard');
       }
@@ -263,8 +203,6 @@ export const CallRoom: React.FC = () => {
     try {
       await lkRoom.connect(livekitUrl, config.token);
 
-      // Acquire camera + mic, then honor the pre-join selections using the
-      // chosen device IDs as capture constraints (Requirement 7.7).
       await lkRoom.localParticipant.enableCameraAndMicrophone();
       await lkRoom.localParticipant.setCameraEnabled(
         config.cameraEnabled,
@@ -298,9 +236,6 @@ export const CallRoom: React.FC = () => {
     }
   };
 
-  // ── Camera (Requirements 8.2, 8.3, 10.1, 10.2, 10.4) ──
-  // On SUCCESS the control flips to `!s`; on FAILURE it stays `s` and an inline
-  // error is raised. Denied/in-use → keep the control disabled, keep connected.
   const toggleCamera = async () => {
     if (!room) return;
     const { next, ok, error } = await toggleWithRollback(
@@ -317,7 +252,7 @@ export const CallRoom: React.FC = () => {
     }
   };
 
-  // ── Microphone (Requirements 8.4, 8.5, 10.1, 10.2, 10.4) ──
+  // Microphone 
   const toggleMic = async () => {
     if (!room) return;
     const { next, ok, error } = await toggleWithRollback(
@@ -334,8 +269,6 @@ export const CallRoom: React.FC = () => {
     }
   };
 
-  // ── Screen Share (Requirements 8.6, 8.7, 10.3) ──
-  // Cancel/deny keeps the inactive state + message; the call stays connected.
   const toggleScreen = async () => {
     if (!room) return;
     const { next, ok, error } = await toggleWithRollback(
@@ -349,9 +282,7 @@ export const CallRoom: React.FC = () => {
     }
   };
 
-  // ── Record (Requirements 8.8, 8.9) ──
-  // Client-side capture: composite all camera/screen video + mixed audio into a
-  // single WebM via MediaRecorder, then upload to /uploads on stop.
+
   const handleToggleRecording = async () => {
     if (!room || !callId) return;
 
@@ -388,10 +319,7 @@ export const CallRoom: React.FC = () => {
     }
   };
 
-  // ── Transcription (Requirement 9.4) ──
-  // Flips the server flag; the backend starts/stops a local whisper.cpp bot that
-  // joins the room, transcribes everyone's audio, and broadcasts results live
-  // via the `transcription:new` socket event (handled above).
+  // Transcription 
   const handleToggleTranscription = async () => {
     if (!callId) return;
     const { next, ok } = await toggleWithRollback(
@@ -404,12 +332,12 @@ export const CallRoom: React.FC = () => {
     }
   };
 
-  // ── Chat (Requirement 8.10) — toggle Meeting_Panel visibility, cannot fail. ──
+  //  Chat (Requirement 8.10) 
   const toggleChat = () => {
     setToolbar((prev) => ({ ...prev, chatOpen: !prev.chatOpen }));
   };
 
-  // ── Local-only controls (Requirement 8.11) — no backend endpoints. ──
+  //  Local-only controls 
   const toggleRaiseHand = () => {
     setToolbar((prev) => ({ ...prev, handRaised: !prev.handRaised }));
   };
@@ -429,8 +357,7 @@ export const CallRoom: React.FC = () => {
     }));
   };
 
-  // ── Leave (Requirements 8.12, 8.13 / Property 8) ──
-  // POST /user/calls/end iff a callId is present; always disconnect + navigate.
+  //  Leave 
   const handleEndCall = async () => {
     intentionalLeaveRef.current = true;
 
@@ -521,8 +448,6 @@ export const CallRoom: React.FC = () => {
     );
   }
 
-  // ── Phase: in-call ── full call surface (toolbar/chat/indicators preserved).
-  // Tile count drives the gallery column count (self-view + remote peers).
   const totalTiles = (localParticipant ? 1 : 0) + remoteParticipants.length;
   const galleryColumns = totalTiles <= 1 ? 1 : totalTiles <= 4 ? 2 : totalTiles <= 9 ? 3 : 4;
 

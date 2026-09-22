@@ -15,11 +15,7 @@ const EMOJIS = [
   '😢', '😭', '😅', '😳', '😮', '😡', '🥳', '🤝', '👋', '💯', '✅', '❌', '⭐', '☕'
 ];
 
-/**
- * Message input with emoji picker and send. Sends on Enter (Shift+Enter =
- * newline). Attachment/image controls are shown to match the design but are
- * disabled because no chat-attachment backend exists — nothing is faked.
- */
+
 export const MessageComposer: React.FC<MessageComposerProps> = ({
   disabled = false,
   sending = false,
@@ -40,7 +36,7 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
     return () => document.removeEventListener('mousedown', onDoc);
   }, [emojiOpen]);
 
-  // Auto-grow the textarea up to its max height.
+
   useEffect(() => {
     const el = inputRef.current;
     if (!el) return;

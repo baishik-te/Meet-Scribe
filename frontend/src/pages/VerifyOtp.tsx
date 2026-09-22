@@ -40,17 +40,12 @@ export const VerifyOtp: React.FC = () => {
     setLoading(true);
     
     try {
-      // Use the auth endpoint that returns a login token
       const res = await api.post('/auth/verify-email', { email, otp });
       
-      // Login the user with the token and user data
       if (res.data.data.token && res.data.data.user) {
         login(res.data.data.token, res.data.data.user);
         
-        // Clear pending email from localStorage
         localStorage.removeItem('pendingVerificationEmail');
-        
-        // Redirect to dashboard
         navigate('/dashboard');
       } else {
         setError('Verification successful but login data missing. Please try logging in.');

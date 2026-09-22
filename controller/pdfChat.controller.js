@@ -8,11 +8,6 @@ const { saveChunk, searchChunks } = require('../services/meetscribe/vectorSearch
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-/**
- * Background ingestion: extract → chunk → embed → store, updating document
- * status. Runs after the upload response so the request doesn't block; the
- * frontend polls document status until READY/FAILED.
- */
 async function ingestDocument(documentId) {
   const doc = await Document.findByPk(documentId);
   if (!doc) return;
@@ -90,8 +85,6 @@ class PdfChatController {
         fileSize: req.file.size,
         status: 'PROCESSING',
       });
-
-      // Fire-and-forget ingestion; frontend polls status.
       ingestDocument(doc.id);
 
       return res.status(201).json({ success: true, data: { document: doc } });
@@ -120,8 +113,6 @@ class PdfChatController {
       if (!doc) {
         return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Document not found' } });
       }
-      // chunks + messages cascade on document delete (FK ON DELETE CASCADE),
-      // but remove the file from disk explicitly.
       const filePath = doc.filePath;
       await doc.destroy();
       fs.promises.unlink(filePath).catch(() => {});

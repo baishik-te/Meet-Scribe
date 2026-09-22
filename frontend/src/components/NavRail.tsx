@@ -34,8 +34,7 @@ const LibraryIcon = (
   </svg>
 );
 
-// Full-color MeetScribe AI badge: blue circle, white "AI" speech bubble,
-// sparkles, and transcript lines — a scalable recreation of the app icon.
+
 const MeetScribeIcon = (
   <svg width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <defs>

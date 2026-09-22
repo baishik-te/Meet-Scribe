@@ -1,6 +1,6 @@
 // Media and call-toolbar types used by the media-permission hook and CallRoom.
 
-/** State owned by the `useMediaDevices` hook. */
+// State owned by the `useMediaDevices` hook.
 export interface MediaDeviceState {
   status: 'idle' | 'requesting' | 'granted' | 'denied' | 'error';
   cameras: MediaDeviceInfo[];
@@ -10,17 +10,17 @@ export interface MediaDeviceState {
   cameraEnabled: boolean;
   micEnabled: boolean;
   previewStream: MediaStream | null;
-  error?: MediaError; // mapped from DOMException
+  error?: MediaError; 
 }
 
-/** User-facing media error, mapped from a browser DOMException. */
+// User-facing media error, mapped from a browser DOMException.
 export interface MediaError {
   device: 'camera' | 'microphone' | 'screen' | 'both';
   kind: 'denied' | 'notFound' | 'inUse' | 'overconstrained' | 'unknown';
-  message: string; // user-facing, includes remediation steps
+  message: string; 
 }
 
-/** Local + remote toggle state for the Call_Toolbar. */
+// Local + remote toggle state for the Call_Toolbar. 
 export interface CallToolbarState {
   cameraEnabled: boolean;
   micEnabled: boolean;
@@ -28,8 +28,8 @@ export interface CallToolbarState {
   recording: boolean;
   transcribing: boolean;
   chatOpen: boolean;
-  handRaised: boolean; // local-only
-  reaction?: string; // local-only
-  peopleOpen: boolean; // local-only
-  viewMode: 'gallery' | 'speaker'; // local-only
+  handRaised: boolean; 
+  reaction?: string; 
+  peopleOpen: boolean; 
+  viewMode: 'gallery' | 'speaker'; 
 }

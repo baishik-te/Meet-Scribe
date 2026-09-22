@@ -41,12 +41,7 @@ export interface UseMessages {
   setActiveConnectionId: (id: string | null) => void;
 }
 
-/**
- * Owns all direct-message state for the Messages page and wires the existing
- * Socket.IO connection (no new socket is created). Listens for `message:new`,
- * `message:read`, and `message:typing`, keeping the active thread and the
- * per-connection summaries (last message + unread count) in sync.
- */
+
 export function useMessages(): UseMessages {
   const { user } = useAuth();
   const { socket } = useSocket();
@@ -65,8 +60,7 @@ export function useMessages(): UseMessages {
   const [typing, setTyping] = useState<Record<string, boolean>>({});
   const [activeConnectionId, setActiveConnectionId] = useState<string | null>(null);
 
-  // Keep the active connection id in a ref so socket handlers (registered once)
-  // always read the latest value without re-subscribing.
+  
   const activeRef = useRef<string | null>(null);
   useEffect(() => {
     activeRef.current = activeConnectionId;
@@ -98,7 +92,6 @@ export function useMessages(): UseMessages {
       try {
         const res = await api.get(`/user/connections/${connectionId}/messages`);
         setMessages(res.data.data.messages);
-        // Opening the thread clears its unread badge locally.
         setSummaries((prev) => {
           if (!prev[connectionId]) return prev;
           return { ...prev, [connectionId]: { ...prev[connectionId], unreadCount: 0 } };
@@ -151,7 +144,6 @@ export function useMessages(): UseMessages {
     []
   );
 
-  // ── Outgoing typing indicator (debounced stop) ──
   const typingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const typingActive = useRef<string | null>(null);
 
@@ -180,7 +172,7 @@ export function useMessages(): UseMessages {
     };
   }, []);
 
-  // ── Socket subscriptions (reuse the shared connection) ──
+  // Socket subscriptions 
   useEffect(() => {
     if (!socket || !currentUserId) return;
 
@@ -191,7 +183,6 @@ export function useMessages(): UseMessages {
         setMessages((prev) =>
           prev.some((m) => m.id === message.id) ? prev : [...prev, message]
         );
-        // We're viewing this thread — mark read on the server.
         api.get(`/user/connections/${message.connectionId}/messages`).catch(() => {});
       }
       setSummaries((prev) => ({
@@ -207,7 +198,6 @@ export function useMessages(): UseMessages {
           unreadCount: isActive ? 0 : (prev[message.connectionId]?.unreadCount ?? 0) + 1
         }
       }));
-      // A delivered message ends the "typing" state for that peer.
       setTyping((prev) => ({ ...prev, [message.connectionId]: false }));
     };
 

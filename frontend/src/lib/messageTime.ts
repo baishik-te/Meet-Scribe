@@ -1,7 +1,4 @@
-// Pure date/time helpers for the Messages page. Uses the platform Intl API
-// (same approach as Library.tsx) — no new date library is introduced.
 
-/** Short clock time, e.g. "10:32 AM". */
 export function formatTime(value: string | Date): string {
   const d = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(d.getTime())) return '';
@@ -11,7 +8,7 @@ export function formatTime(value: string | Date): string {
   }).format(d);
 }
 
-/** Day/month, e.g. "18 Sep". */
+
 export function formatDayMonth(value: string | Date): string {
   const d = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(d.getTime())) return '';
@@ -21,13 +18,7 @@ export function formatDayMonth(value: string | Date): string {
   }).format(d);
 }
 
-/**
- * Compact timestamp for conversation lists / message meta:
- *  - today            -> "10:32 AM"
- *  - yesterday        -> "Yesterday"
- *  - within this year -> "18 Sep"
- *  - older            -> "18 Sep 2024"
- */
+
 export function formatRelative(value: string | Date): string {
   const d = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(d.getTime())) return '';
@@ -47,7 +38,7 @@ export function formatRelative(value: string | Date): string {
   }).format(d);
 }
 
-/** Section divider label for message groups: "Today", "Yesterday", or a date. */
+// Section divider label for message groups: "Today", "Yesterday"
 export function formatDayLabel(value: string | Date): string {
   const d = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(d.getTime())) return '';
@@ -67,7 +58,7 @@ export function formatDayLabel(value: string | Date): string {
   }).format(d);
 }
 
-/** Stable day key ("YYYY-MM-DD") used to group messages into date sections. */
+// Stable day key ("YYYY-MM-DD") 
 export function dayKey(value: string | Date): string {
   const d = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(d.getTime())) return '';

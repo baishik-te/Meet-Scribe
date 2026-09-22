@@ -6,7 +6,6 @@ const GeminiService = require('../services/gemini.service');
 
 const UPLOADS_DIR = path.join(__dirname, '..', 'uploads');
 
-/** Ensure a call exists and the requesting user is a participant (caller/receiver). */
 async function findParticipantCall(callId, userId) {
   const call = await Call.findOne({
     where: {
@@ -17,18 +16,12 @@ async function findParticipantCall(callId, userId) {
   return call;
 }
 
-/** Format a Date as a friendly default recording name, e.g. "Recording · Sep 18, 2026 3:45 PM". */
 function defaultRecordingName(date = new Date()) {
   const opts = { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' };
   return `Recording · ${new Intl.DateTimeFormat('en-US', opts).format(date)}`;
 }
 
 class MediaController {
-  // ─────────────────────────────────────────────────────────────────────────
-  // Summaries
-  // POST /user/calls/:callId/summary   → generate + save a Gemini summary
-  // GET  /user/calls/:callId/summary   → latest saved summary (or null)
-  // ─────────────────────────────────────────────────────────────────────────
   static async generateSummary(req, res, next) {
     const { callId } = req.params;
     try {
@@ -96,10 +89,6 @@ class MediaController {
     }
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // Recording upload (client-side MediaRecorder → file saved under /uploads)
-  // POST /user/calls/:callId/recording/upload  (multipart: field "recording")
-  // ─────────────────────────────────────────────────────────────────────────
   static async uploadRecording(req, res, next) {
     const { callId } = req.params;
     try {
@@ -227,8 +216,6 @@ class MediaController {
     }
   }
 
-  // GET /user/transcriptions — calls (the user participated in) that have a
-  // transcript, with counts + whether a summary exists, for the library page.
   static async listTranscriptionSessions(req, res, next) {
     try {
       const calls = await Call.findAll({

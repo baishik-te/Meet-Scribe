@@ -1,8 +1,4 @@
 'use strict';
-
-// Direct 1:1 chat messages exchanged between two connected users. Additive
-// only — no existing table is modified. A message belongs to an accepted
-// connection thread and records sender/receiver plus an optional read timestamp.
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('messages', {

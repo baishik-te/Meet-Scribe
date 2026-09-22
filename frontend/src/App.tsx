@@ -6,6 +6,7 @@ import { ProtectedRoute, AuthenticatedRoute } from './components/ProtectedRoute'
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { VerifyOtp } from './pages/VerifyOtp';
+import { ForgotPassword } from './pages/ForgotPassword';
 import { UserDashboard } from './pages/UserDashboard';
 import { Connections } from './pages/Connections';
 import { Meetings } from './pages/Meetings';
@@ -26,17 +27,13 @@ import { AdminCalls } from './pages/admin/AdminCalls';
 
 import './styles/theme.css';
 
-/**
- * RoleProtectedRoute - Protects routes by role (ADMIN/USER) in addition to active status
- */
+//  RoleProtectedRoute - Protects routes by role (ADMIN/USER)
+ 
 const RoleProtectedRoute: React.FC<{ children: React.ReactNode; role: 'ADMIN' | 'USER' }> = ({ 
   children, 
   role 
 }) => {
   const { user } = useAuth();
-
-  // ProtectedRoute already checks active status and redirects to OTP if needed
-  // This just adds role check on top
   if (user && user.role !== role) {
     return <Navigate to="/dashboard" replace />;
   }
@@ -54,6 +51,7 @@ export const App: React.FC = () => {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/verify-otp" element={<VerifyOtp />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
 
             {/* Standard User Protected Routes - requires ACTIVE status */}
             <Route path="/dashboard" element={<ProtectedRoute requireActive={true}><UserDashboard /></ProtectedRoute>} />

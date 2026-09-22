@@ -4,9 +4,6 @@ const LiveKitService = require('../services/livekit.service');
 const SocketService = require('../services/socket.service');
 const TranscriptionBot = require('../services/transcription-bot.service');
 
-// Grace window after a call becomes ACTIVE before the empty-room safety net can
-// terminate it. Prevents killing a legitimate call in the brief interval before
-// participants finish connecting to LiveKit.
 const CONNECT_GRACE_MS = 90000;
 
 const runCallBillingCycle = async () => {
@@ -34,12 +31,6 @@ const runCallBillingCycle = async () => {
       const caller = call.caller;
       if (!caller) continue;
 
-      // ── Safety net: stop billing when nobody who should be billed is left ──
-      // If the user leaves without pressing "Leave" (tab close, refresh, crash,
-      // lost connection), the LiveKit participant disconnects but the Call row
-      // stays ACTIVE — which would keep burning the caller's tokens forever.
-      // Before charging, verify the room still has real participants and that
-      // the billed caller is still present; otherwise terminate the call now.
       const activeSince = new Date(call.startedAt || call.createdAt).getTime();
       const pastGrace = Date.now() - activeSince > CONNECT_GRACE_MS;
       if (pastGrace) {

@@ -12,7 +12,7 @@ interface MessageListProps {
   onRetry: () => void;
 }
 
-/** Scrollable, date-grouped message history with sent/received distinction. */
+
 export const MessageList: React.FC<MessageListProps> = ({
   messages,
   currentUserId,
