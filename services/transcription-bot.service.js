@@ -90,7 +90,7 @@ class TranscriptionBot {
     this.room = new Room();
     this.room.on(RoomEvent.TrackSubscribed, (track, _pub, participant) => {
       if (this.stopped) return;
-      // Never transcribe another bot's audio (there won't be one, but be safe).
+      // Never transcribe another bot's audio 
       if (participant.identity && participant.identity.startsWith('transcriber-')) return;
       if (track.kind === TrackKind.KIND_AUDIO) {
         this.consumeAudio(track, participant);

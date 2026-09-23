@@ -76,5 +76,4 @@ class LiveKitService {
     }
   }
 }
-
 module.exports = LiveKitService;

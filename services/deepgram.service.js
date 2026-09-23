@@ -6,7 +6,7 @@ const MODEL = process.env.DEEPGRAM_MODEL || 'nova-2';
 
 function readApiKey() {
   const key = process.env.DEEPGRAM_API_KEY;
-  if (!key || key === 'your_deepgram_api_key_here') return null;
+  if (!key || key === 'b9bf7b4eef774f8a20882f0d1a83bd5cb8cfec3b') return null;
   return key;
 }
 const NOISE_RE = /^(\[?\s*(no (audio|speech|sound)|silence|inaudible|unintelligible|blank_audio)\s*\]?\.?)$/i;

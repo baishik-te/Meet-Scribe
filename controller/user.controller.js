@@ -379,8 +379,8 @@ class UserController {
       const session = await StripeService.createCheckoutSession({
         user: req.user,
         planId,
-        successUrl: `${clientUrl}/profile?payment=success&session_id={CHECKOUT_SESSION_ID}`,
-        cancelUrl: `${clientUrl}/profile?payment=cancelled`
+        successUrl: `${clientUrl}/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+        cancelUrl: `${clientUrl}/dashboard?payment=cancelled`
       });
       return res.status(200).json({ success: true, data: { checkoutUrl: session.url } });
     } catch (error) {
@@ -844,8 +844,8 @@ class UserController {
     const { callId, enable } = req.body;
     try {
       const call = await Call.findByPk(callId);
-      if (!call || call.status !== 'ACTIVE') {
-        return res.status(400).json({ success: false, error: { code: 'INVALID_CALL', message: 'Call is not active' } });
+      if (!call || !['RINGING', 'ACTIVE'].includes(call.status)) {
+        return res.status(400).json({ success: false, error: { code: 'INVALID_CALL', message: 'Call is not available for transcription' } });
       }
 
       call.transcriptionEnabled = Boolean(enable);

@@ -88,5 +88,4 @@ class TokenService {
     return wallet ? wallet.currentTokenBalance : 0;
   }
 }
-
 module.exports = TokenService;
