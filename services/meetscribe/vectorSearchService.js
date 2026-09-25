@@ -32,6 +32,7 @@ async function saveChunk({ documentId, chunkIndex, pageNumber, content, embeddin
 async function searchChunks({ userId, documentId, queryEmbedding, limit = 5 }) {
   const rows = await sequelize.query(
     `SELECT c.id, c.document_id, c.page_number, c.content,
+            c.metadata->>'sourceFileName' AS source_file_name,
             1 - (c.embedding <=> :queryEmbedding::vector) AS similarity
        FROM document_chunks c
        JOIN documents d ON d.id = c.document_id
@@ -47,4 +48,22 @@ async function searchChunks({ userId, documentId, queryEmbedding, limit = 5 }) {
   return rows;
 }
 
-module.exports = { saveChunk, searchChunks };
+/**
+ * Remove vectors belonging to one physical file from its session anchor.
+ * Supplementary-file chunks are stored under the anchor document_id, so a
+ * normal document cascade cannot remove them when the child row is deleted.
+ */
+async function deleteChunksForSourceDocument({ sessionId, sourceDocumentId }) {
+  await sequelize.query(
+    `DELETE FROM document_chunks
+      WHERE document_id = :sessionId
+        AND metadata->>'sourceDocumentId' = :sourceDocumentId`,
+    { replacements: { sessionId, sourceDocumentId } }
+  );
+}
+
+module.exports = {
+  saveChunk,
+  searchChunks,
+  deleteChunksForSourceDocument,
+};

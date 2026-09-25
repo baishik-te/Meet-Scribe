@@ -6,6 +6,14 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true
     },
     userId: { type: DataTypes.UUID, allowNull: false },
+    // Session anchor: the id of the first document in this chat session.
+    // Null is treated as "this document is its own session anchor".
+    sessionId: { type: DataTypes.UUID, allowNull: true },
+    isChatAttachment: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
     fileName: { type: DataTypes.STRING, allowNull: false },
     filePath: { type: DataTypes.STRING, allowNull: false },
     mimeType: { type: DataTypes.STRING, allowNull: true },
@@ -26,6 +34,9 @@ module.exports = (sequelize, DataTypes) => {
     Document.belongsTo(models.User, { foreignKey: 'userId', as: 'user' });
     Document.hasMany(models.DocumentChunk, { foreignKey: 'documentId', as: 'chunks' });
     Document.hasMany(models.ChatMessage, { foreignKey: 'documentId', as: 'messages' });
+    // Session grouping: an anchor document has many supplementary documents.
+    Document.belongsTo(models.Document, { foreignKey: 'sessionId', as: 'session' });
+    Document.hasMany(models.Document, { foreignKey: 'sessionId', as: 'sessionFiles' });
   };
 
   return Document;

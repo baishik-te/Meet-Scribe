@@ -1,12 +1,15 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import TextareaAutosize from 'react-textarea-autosize';
 import api from '../api/client';
 import { AppShell } from '../components/AppShell';
 import { InlineNotice } from '../components/InlineNotice';
+import { MarkdownMessage } from '../components/MarkdownMessage';
 import '../styles/MeetScribeAI.css';
 
 interface DocumentVM {
   id: string;
   fileName: string;
+  sessionId?: string;
   status: 'PROCESSING' | 'READY' | 'FAILED';
   pageCount: number;
   chunkCount: number;
@@ -17,13 +20,29 @@ interface DocumentVM {
 
 interface SourceVM {
   page: number | null;
+  fileName?: string | null;
   similarity: number;
+}
+
+interface AttachmentVM {
+  documentId?: string;
+  fileName: string;
+  mimeType: string;
+  fileSize: number;
+  previewUrl?: string | null;
+}
+
+interface StagedFileVM {
+  id: string;
+  file: File;
+  previewUrl: string | null;
 }
 
 interface ChatMsgVM {
   id: string;
   role: 'user' | 'assistant';
   message: string;
+  attachments?: AttachmentVM[] | null;
   sources?: SourceVM[] | null;
 }
 
@@ -99,6 +118,23 @@ const SendIcon = () => (
   </svg>
 );
 
+const PlusIcon = () => (
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M12 5v14" />
+    <path d="M5 12h14" />
+  </svg>
+);
+
 const TrashIcon = () => (
   <svg
     width="15"
@@ -150,6 +186,7 @@ export const MeetScribeAI: React.FC = () => {
   const [documents, setDocuments] = useState<DocumentVM[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMsgVM[]>([]);
+  const [stagedFiles, setStagedFiles] = useState<StagedFileVM[]>([]);
   const [question, setQuestion] = useState('');
   const [uploading, setUploading] = useState(false);
   const [asking, setAsking] = useState(false);
@@ -157,9 +194,27 @@ export const MeetScribeAI: React.FC = () => {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const stagedFilesRef = useRef<StagedFileVM[]>([]);
+  const retainedPreviewUrlsRef = useRef<string[]>([]);
+  // Determines whether the next file selection starts a new session upload or
+  // is staged for the active chat composer.
+  const filePickerModeRef = useRef<'new' | 'stage'>('new');
 
   const selectedDoc =
     documents.find((document) => document.id === selectedId) || null;
+  const activeSessionId = selectedDoc?.sessionId || selectedDoc?.id || null;
+  const sessionDocuments = activeSessionId
+    ? documents.filter(
+        (document) =>
+          (document.sessionId || document.id) === activeSessionId
+      )
+    : [];
+  const sessionReady = sessionDocuments.some(
+    (document) => document.status === 'READY'
+  );
+  const activeChatStatus: DocumentVM['status'] = sessionReady
+    ? 'READY'
+    : selectedDoc?.status || 'PROCESSING';
 
   const loadDocuments = useCallback(async () => {
     try {
@@ -224,13 +279,59 @@ export const MeetScribeAI: React.FC = () => {
     });
   }, [messages]);
 
+  const stageFiles = (files: File[]) => {
+    const staged = files.map((file, index) => ({
+      id: `staged-${Date.now()}-${index}-${Math.random().toString(36).slice(2)}`,
+      file,
+      previewUrl: file.type.startsWith('image/')
+        ? URL.createObjectURL(file)
+        : null,
+    }));
+
+    setStagedFiles((current) => [...current, ...staged]);
+  };
+
+  const removeStagedFile = (id: string) => {
+    setStagedFiles((current) => {
+      const removed = current.find((item) => item.id === id);
+      if (removed?.previewUrl) URL.revokeObjectURL(removed.previewUrl);
+      return current.filter((item) => item.id !== id);
+    });
+  };
+
+  const clearStagedFiles = (revokePreviews = true) => {
+    if (revokePreviews) {
+      stagedFilesRef.current.forEach((item) => {
+        if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
+      });
+    }
+    stagedFilesRef.current = [];
+    setStagedFiles([]);
+  };
+
+  useEffect(() => {
+    stagedFilesRef.current = stagedFiles;
+  }, [stagedFiles]);
+
+  useEffect(() => {
+    return () => {
+      stagedFilesRef.current.forEach((item) => {
+        if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
+      });
+      retainedPreviewUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, []);
+
+  useEffect(() => {
+    clearStagedFiles();
+  }, [selectedId]);
+
   const handleUpload = async (file: File) => {
     setError(null);
     setUploading(true);
 
     try {
       const form = new FormData();
-
       form.append('pdf', file);
 
       const res = await api.post(
@@ -243,11 +344,12 @@ export const MeetScribeAI: React.FC = () => {
         }
       );
 
-      const doc: DocumentVM =
-        res.data.data.document;
-
-      setDocuments((prev) => [doc, ...prev]);
-      setSelectedId(doc.id);
+      const doc: DocumentVM = res.data.data.document;
+      setDocuments((prev) => [
+        doc,
+        ...prev.filter((existing) => existing.id !== doc.id),
+      ]);
+      setSelectedId(res.data.data.sessionId || doc.id);
     } catch (err: any) {
       setError(
         err.response?.data?.error?.message ||
@@ -255,14 +357,24 @@ export const MeetScribeAI: React.FC = () => {
       );
     } finally {
       setUploading(false);
-
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
+  const openNewFilePicker = () => {
+    filePickerModeRef.current = 'new';
+    fileInputRef.current?.click();
+  };
+
+  const openMergeFilePicker = () => {
+    if (!activeSessionId) return;
+    filePickerModeRef.current = 'stage';
+    fileInputRef.current?.click();
+  };
+
   const handleDelete = async (id: string) => {
+    const documentToDelete = documents.find((doc) => doc.id === id);
+
     try {
       await api.delete(`/user/pdf/${id}`);
 
@@ -270,7 +382,18 @@ export const MeetScribeAI: React.FC = () => {
         prev.filter((doc) => doc.id !== id)
       );
 
-      if (selectedId === id) {
+      if (documentToDelete) {
+        const documentSessionId =
+          documentToDelete.sessionId || documentToDelete.id;
+        const isAnchor = documentSessionId === documentToDelete.id;
+
+        if (isAnchor && activeSessionId === documentSessionId) {
+          setSelectedId(null);
+        } else if (!isAnchor && selectedId === id) {
+          // Removing a supplementary file must not close the active session.
+          setSelectedId(documentSessionId);
+        }
+      } else if (selectedId === id) {
         setSelectedId(null);
       }
     } catch (err: any) {
@@ -287,11 +410,12 @@ export const MeetScribeAI: React.FC = () => {
     e.preventDefault();
 
     const q = question.trim();
+    const filesToSend = [...stagedFiles];
 
     if (
       !q ||
       !selectedDoc ||
-      selectedDoc.status !== 'READY' ||
+      !sessionReady ||
       asking
     ) {
       return;
@@ -302,23 +426,68 @@ export const MeetScribeAI: React.FC = () => {
     setError(null);
 
     const tempId = `tmp-${Date.now()}`;
+    const optimisticAttachments: AttachmentVM[] = filesToSend.map((item) => ({
+      fileName: item.file.name,
+      mimeType: item.file.type || 'application/octet-stream',
+      fileSize: item.file.size,
+      previewUrl: item.previewUrl,
+    }));
 
+    // Optimistically render the user's question and staged files immediately.
+    // Keep image object URLs alive for the rendered message after clearing the
+    // composer preview.
+    retainedPreviewUrlsRef.current.push(
+      ...filesToSend
+        .map((item) => item.previewUrl)
+        .filter((url): url is string => Boolean(url))
+    );
     setMessages((prev) => [
       ...prev,
       {
         id: tempId,
         role: 'user',
         message: q,
+        attachments: optimisticAttachments.length
+          ? optimisticAttachments
+          : null,
       },
     ]);
+    clearStagedFiles(false);
 
     try {
+      let payload: FormData | { question: string } = { question: q };
+      let requestConfig: { headers?: Record<string, string> } | undefined;
+
+      if (filesToSend.length > 0) {
+        const form = new FormData();
+        form.append('question', q);
+        if (activeSessionId) {
+          form.append('activeDocumentId', activeSessionId);
+        }
+        filesToSend.forEach((item) => {
+          form.append('attachments', item.file, item.file.name);
+        });
+        payload = form;
+        requestConfig = {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        };
+      }
+
       const res = await api.post(
         `/user/pdf/${selectedDoc.id}/chat`,
-        {
-          question: q,
-        }
+        payload,
+        requestConfig
       );
+
+      // The backend masks AI/API failures as a 200 with success:false and a
+      // safe message. Surface that message and keep raw errors out of the UI.
+      if (!res.data?.success || !res.data?.data) {
+        setError(
+          res.data?.error?.message ||
+            'Something went wrong, please try again'
+        );
+        return;
+      }
 
       const {
         answer,
@@ -329,28 +498,46 @@ export const MeetScribeAI: React.FC = () => {
       setMessages((prev) => [
         ...prev,
         {
-          id:
-            messageId ||
-            `a-${Date.now()}`,
+          id: messageId || `a-${Date.now()}`,
           role: 'assistant',
           message: answer,
           sources,
         },
       ]);
-    } catch (err: any) {
-      setError(
-        err.response?.data?.error?.message ||
-          'Could not get an answer.'
-      );
+
+      if (filesToSend.length > 0) {
+        // Refresh only from the filtered library endpoint. Chat-only rows are
+        // excluded server-side, so this cannot append them to Your Documents
+        // and also removes legacy rows after the compatibility migration.
+        await loadDocuments();
+      }
+
+      // Chat attachments remain local to this session/message and are not
+      // appended to the global document library.
+      return;
+    } catch {
+      // Never expose raw API errors, JSON bodies, or status codes.
+      setError('Something went wrong, please try again');
     } finally {
       setAsking(false);
     }
   };
 
+  // Enter submits; Shift+Enter inserts a newline.
+  const handleComposerKeyDown = (
+    e: React.KeyboardEvent<HTMLTextAreaElement>
+  ) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleAsk(e);
+    }
+    // Shift+Enter: fall through to default behavior (newline).
+  };
+
   const handleSuggestion = (text: string) => {
     if (
       !selectedDoc ||
-      selectedDoc.status !== 'READY' ||
+      !sessionReady ||
       asking
     ) {
       return;
@@ -375,14 +562,14 @@ export const MeetScribeAI: React.FC = () => {
           <div>
             <div className="pdf-eyebrow">
               <span className="pdf-eyebrow-dot" />
-              AI PDF WORKSPACE
+              AI DOCUMENT WORKSPACE
             </div>
 
             <h1>Understand your documents.</h1>
 
             <p>
               Ask questions, summarize content, and explore
-              your PDFs with grounded answers and page
+              your documents with grounded answers and page
               citations.
             </p>
           </div>
@@ -426,7 +613,7 @@ export const MeetScribeAI: React.FC = () => {
                   DOCUMENT LIBRARY
                 </span>
 
-                <h2>Your PDFs</h2>
+                <h2>Your Documents</h2>
               </div>
 
               <span className="document-count">
@@ -437,14 +624,19 @@ export const MeetScribeAI: React.FC = () => {
             <input
               ref={fileInputRef}
               type="file"
-              accept="application/pdf"
+              multiple
+              accept=".pdf,.txt,.docx,.xlsx,image/png,image/jpeg,image/jpg"
               hidden
               onChange={(e) => {
-                const file =
-                  e.target.files?.[0];
+                const files = Array.from(e.target.files || []);
+                const mode = filePickerModeRef.current;
+                filePickerModeRef.current = 'new';
+                e.target.value = '';
 
-                if (file) {
-                  handleUpload(file);
+                if (mode === 'stage') {
+                  stageFiles(files);
+                } else if (files[0]) {
+                  handleUpload(files[0]);
                 }
               }}
             />
@@ -452,20 +644,18 @@ export const MeetScribeAI: React.FC = () => {
             <button
               type="button"
               className="upload-button"
-              onClick={() =>
-                fileInputRef.current?.click()
-              }
+              onClick={openNewFilePicker}
               disabled={uploading}
             >
               <UploadIcon />
 
               {uploading
                 ? 'Uploading…'
-                : 'Upload PDF'}
+                : 'Upload File'}
             </button>
 
             <div className="upload-hint">
-              PDF files only
+              PDF, TXT, DOCX, XLSX, PNG, JPG
             </div>
 
             <div className="documents-divider" />
@@ -481,17 +671,15 @@ export const MeetScribeAI: React.FC = () => {
                   <h3>No documents yet</h3>
 
                   <p>
-                    Upload your first PDF to start
+                    Upload your first file to start
                     asking questions.
                   </p>
 
                   <button
                     type="button"
-                    onClick={() =>
-                      fileInputRef.current?.click()
-                    }
+                    onClick={openNewFilePicker}
                   >
-                    Upload your first PDF
+                    Upload your first file
                   </button>
                 </div>
               ) : (
@@ -542,6 +730,13 @@ export const MeetScribeAI: React.FC = () => {
                                 {doc.pageCount} pages
                               </span>
                             )}
+
+                            {doc.sessionId &&
+                              doc.sessionId !== doc.id && (
+                                <span className="document-session-label">
+                                  In active chat
+                                </span>
+                              )}
 
                             {doc.fileSize ? (
                               <span>
@@ -601,19 +796,17 @@ export const MeetScribeAI: React.FC = () => {
                 </h2>
 
                 <p>
-                  Select a PDF from your library or
+                  Select a document from your library or
                   upload a new one to begin a grounded
                   conversation.
                 </p>
 
                 <button
                   type="button"
-                  onClick={() =>
-                    fileInputRef.current?.click()
-                  }
+                  onClick={openNewFilePicker}
                 >
                   <UploadIcon />
-                  Upload PDF
+                  Upload File
                 </button>
 
               </div>
@@ -634,26 +827,21 @@ export const MeetScribeAI: React.FC = () => {
                         {selectedDoc.fileName}
                       </div>
 
-                      <div className="chat-document-meta">
-                        {selectedDoc.status ===
-                        'READY'
-                          ? `${selectedDoc.pageCount} pages · ${selectedDoc.chunkCount} chunks`
-                          : STATUS_STYLES[
-                              selectedDoc.status
-                            ].label}
-                      </div>
+                  <div className="chat-document-meta">
+                    {sessionDocuments.length > 1
+                      ? `${sessionDocuments.length} files in this chat · ${sessionDocuments.reduce((total, document) => total + (document.chunkCount || 0), 0)} chunks`
+                      : selectedDoc.status === 'READY'
+                        ? `${selectedDoc.pageCount} pages · ${selectedDoc.chunkCount} chunks`
+                        : STATUS_STYLES[selectedDoc.status].label}
+                  </div>
                     </div>
                   </div>
 
                   <div
-                    className={`chat-status chat-status--${selectedDoc.status.toLowerCase()}`}
+                    className={`chat-status chat-status--${activeChatStatus.toLowerCase()}`}
                   >
                     <span />
-                    {
-                      STATUS_STYLES[
-                        selectedDoc.status
-                      ].label
-                    }
+                    {STATUS_STYLES[activeChatStatus].label}
                   </div>
                 </div>
 
@@ -661,8 +849,7 @@ export const MeetScribeAI: React.FC = () => {
 
                 <div className="messages-area">
 
-                  {selectedDoc.status ===
-                    'PROCESSING' && (
+                  {!sessionReady && (
                     <div className="processing-state">
                       <div className="loading-orb">
                         <SparkleIcon />
@@ -672,11 +859,11 @@ export const MeetScribeAI: React.FC = () => {
                         Preparing your document
                       </h3>
 
-                      <p>
-                        We're indexing your PDF so
-                        MeetScribe AI can answer with
-                        page-level context.
-                      </p>
+                              <p>
+                                We're indexing the files in this chat so
+                                MeetScribe AI can answer with
+                                page-level context.
+                              </p>
 
                       <div className="processing-bar">
                         <span />
@@ -684,7 +871,7 @@ export const MeetScribeAI: React.FC = () => {
                     </div>
                   )}
 
-                  {selectedDoc.status === 'FAILED' && (
+                  {selectedDoc.status === 'FAILED' && !sessionReady && (
                     <div className="processing-state processing-state--error">
                       <div className="loading-orb">
                         <FileIcon />
@@ -701,7 +888,7 @@ export const MeetScribeAI: React.FC = () => {
                     </div>
                   )}
 
-                  {selectedDoc.status === 'READY' &&
+                  {sessionReady &&
                     messages.length === 0 && (
                       <div className="chat-empty">
 
@@ -714,7 +901,7 @@ export const MeetScribeAI: React.FC = () => {
                         </span>
 
                         <h3>
-                          Ask anything about your PDF
+                          Ask anything about your document
                         </h3>
 
                         <p>
@@ -797,7 +984,34 @@ export const MeetScribeAI: React.FC = () => {
                                 : 'message-bubble message-bubble--assistant'
                             }
                           >
-                            {message.message}
+                            {message.role === 'assistant' ? (
+                              <MarkdownMessage content={message.message} />
+                            ) : (
+                              <>
+                                {message.attachments && message.attachments.length > 0 && (
+                                  <div className="message-attachments">
+                                    {message.attachments.map((attachment, index) => (
+                                      <div
+                                        className="message-attachment"
+                                        key={`${message.id}-attachment-${index}`}
+                                      >
+                                        <div className="message-attachment-preview">
+                                          {attachment.previewUrl && attachment.mimeType.startsWith('image/') ? (
+                                            <img src={attachment.previewUrl} alt="" />
+                                          ) : (
+                                            <FileIcon />
+                                          )}
+                                        </div>
+                                        <span title={attachment.fileName}>
+                                          {attachment.fileName}
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                                <div className="message-text">{message.message}</div>
+                              </>
+                            )}
                           </div>
 
                           {message.role ===
@@ -825,10 +1039,11 @@ export const MeetScribeAI: React.FC = () => {
                                         <span
                                           key={`${message.id}-${index}`}
                                           className="source-chip"
-                                          title={`Similarity ${(source.similarity * 100).toFixed(
+                                          title={`${source.fileName ? `${source.fileName} · ` : ''}Similarity ${(source.similarity * 100).toFixed(
                                             0
                                           )}%`}
                                         >
+                                          {source.fileName ? `${source.fileName} · ` : ''}
                                           Page{' '}
                                           {source.page}
                                         </span>
@@ -871,44 +1086,88 @@ export const MeetScribeAI: React.FC = () => {
                   className="chat-composer"
                   onSubmit={handleAsk}
                 >
+                  {stagedFiles.length > 0 && (
+                    <div
+                      className="staged-attachments"
+                      aria-label="Files staged for this message"
+                    >
+                      {stagedFiles.map((item) => (
+                        <div
+                          className="staged-attachment"
+                          key={item.id}
+                        >
+                          <div className="staged-attachment-preview">
+                            {item.previewUrl ? (
+                              <img
+                                src={item.previewUrl}
+                                alt=""
+                              />
+                            ) : (
+                              <FileIcon />
+                            )}
+                          </div>
+                          <span
+                            className="staged-attachment-name"
+                            title={item.file.name}
+                          >
+                            {item.file.name}
+                          </span>
+                          <button
+                            type="button"
+                            className="staged-attachment-remove"
+                            onClick={() => removeStagedFile(item.id)}
+                            aria-label={`Remove ${item.file.name}`}
+                            title="Remove attachment"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
                   <div className="composer-inner">
+
+                    <button
+                      type="button"
+                      className="composer-attach"
+                      onClick={openMergeFilePicker}
+                      disabled={uploading}
+                      aria-label="Upload a file"
+                      title="Upload a file"
+                    >
+                      <PlusIcon />
+                    </button>
 
                     <label
                       htmlFor="pdf-question"
                       className="sr-only"
                     >
-                      Ask a question about the PDF
+                      Ask a question about the document
                     </label>
 
-                    <input
+                    <TextareaAutosize
                       id="pdf-question"
-                      type="text"
                       value={question}
+                      minRows={1}
+                      maxRows={6}
                       onChange={(e) =>
                         setQuestion(
                           e.target.value
                         )
                       }
+                      onKeyDown={handleComposerKeyDown}
                       placeholder={
-                        selectedDoc.status ===
-                        'READY'
-                          ? 'Ask a question about this document…'
-                          : 'Document is still processing…'
+                        sessionReady
+                          ? 'Ask a question about these documents…'
+                          : 'Documents are still processing…'
                       }
-                      disabled={
-                        selectedDoc.status !==
-                          'READY' || asking
-                      }
+                      disabled={!sessionReady || asking}
                     />
 
                     <button
                       type="submit"
-                      disabled={
-                        selectedDoc.status !==
-                          'READY' ||
-                        asking ||
-                        !question.trim()
-                      }
+                      disabled={!sessionReady || asking || !question.trim()}
                       aria-label="Send question"
                     >
                       <SendIcon />
@@ -918,11 +1177,11 @@ export const MeetScribeAI: React.FC = () => {
                   <div className="composer-footer">
                     <span>
                       Answers are grounded in your
-                      selected document.
+                      active chat files.
                     </span>
 
                     <span>
-                      Enter to send
+                      Enter to send · Shift+Enter for a new line
                     </span>
                   </div>
                 </form>

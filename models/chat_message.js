@@ -12,7 +12,10 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false
     },
     message: { type: DataTypes.TEXT, allowNull: false },
-    sources: { type: DataTypes.JSONB, allowNull: true }
+    sources: { type: DataTypes.JSONB, allowNull: true },
+    // Uploaded files associated with this user message. Stored as safe
+    // metadata only; the physical files/vectors remain in the document session.
+    attachments: { type: DataTypes.JSONB, allowNull: true }
   }, {
     tableName: 'chat_messages',
     underscored: true,

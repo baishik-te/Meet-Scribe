@@ -26,20 +26,40 @@ const uploadRecording = multer({
 const pdfStorage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, PDFS_DIR),
   filename: (req, file, cb) => {
-    const ext = (file.originalname && path.extname(file.originalname)) || '.pdf';
+    const ext = (file.originalname && path.extname(file.originalname)) || '.dat';
     cb(null, `${uuidv4()}${ext}`);
   }
 });
 
-const uploadPdf = multer({
+// Accept PDF, plain text, Word (.docx), Excel (.xlsx), and images (png/jpg/jpeg).
+const ALLOWED_DOC_MIME = new Set([
+  'application/pdf',
+  'text/plain',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'image/png',
+  'image/jpeg',
+  'image/jpg',
+]);
+const ALLOWED_DOC_EXT = /\.(pdf|txt|docx|xlsx|png|jpe?g)$/i;
+
+const uploadDocument = multer({
   storage: pdfStorage,
   limits: { fileSize: 25 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    if (file.mimetype === 'application/pdf' || /\.pdf$/i.test(file.originalname)) {
+    if (ALLOWED_DOC_MIME.has(file.mimetype) || ALLOWED_DOC_EXT.test(file.originalname || '')) {
       return cb(null, true);
     }
-    cb(new Error('Only PDF files are allowed'));
+    cb(new Error('Unsupported file type. Allowed: PDF, TXT, DOCX, XLSX, PNG, JPG, JPEG.'));
   }
 });
 
-module.exports = { uploadRecording, uploadPdf, UPLOADS_DIR, RECORDINGS_DIR, PDFS_DIR };
+// `uploadPdf` kept as an alias for backward compatibility with existing routes.
+module.exports = {
+  uploadRecording,
+  uploadDocument,
+  uploadPdf: uploadDocument,
+  UPLOADS_DIR,
+  RECORDINGS_DIR,
+  PDFS_DIR,
+};

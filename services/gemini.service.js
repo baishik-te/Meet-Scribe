@@ -1,7 +1,7 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 
-const MODEL = process.env.GEMINI_MODEL || 'gemini-3.5-flash';
+const MODEL = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
 
 // Gemini Key
 function readApiKey() {
