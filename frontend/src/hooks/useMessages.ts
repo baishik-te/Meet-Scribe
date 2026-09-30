@@ -31,7 +31,7 @@ export interface UseMessages {
 
   sending: boolean;
   sendError: string | null;
-  sendMessage: (connectionId: string, body: string) => Promise<boolean>;
+  sendMessage: (connectionId: string, body: string, file?: File | null) => Promise<boolean>;
 
   /** connectionId -> whether the OTHER participant is currently typing. */
   typing: Record<string, boolean>;
@@ -107,15 +107,25 @@ export function useMessages(): UseMessages {
   );
 
   const sendMessage = useCallback(
-    async (connectionId: string, body: string): Promise<boolean> => {
+    async (connectionId: string, body: string, file?: File | null): Promise<boolean> => {
       const trimmed = body.trim();
-      if (!trimmed) return false;
+      if (!trimmed && !file) return false;
       setSending(true);
       setSendError(null);
       try {
-        const res = await api.post(`/user/connections/${connectionId}/messages`, {
-          body: trimmed
-        });
+        let res;
+        if (file) {
+          const formData = new FormData();
+          if (trimmed) formData.append('body', trimmed);
+          formData.append('file', file);
+          res = await api.post(`/user/connections/${connectionId}/messages`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+          });
+        } else {
+          res = await api.post(`/user/connections/${connectionId}/messages`, {
+            body: trimmed
+          });
+        }
         const message: MessageVM = res.data.data.message;
         if (activeRef.current === connectionId) {
           setMessages((prev) => [...prev, message]);

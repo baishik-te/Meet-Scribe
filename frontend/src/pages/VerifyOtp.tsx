@@ -25,7 +25,7 @@ export const VerifyOtp: React.FC = () => {
 
   // Start countdown timer
   React.useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval>;
     if (resendTimer > 0) {
       interval = setInterval(() => {
         setResendTimer(prev => prev - 1);

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import api from '../api/client';
+import api, { API_BASE_URL } from '../api/client';
 import { AppShell } from '../components/AppShell';
 import { InlineNotice } from '../components/InlineNotice';
 
@@ -69,8 +69,8 @@ const RecordingsTab: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
-  const [playingUrl, setPlayingUrl] = useState<string | null>(null);
   const [playingId, setPlayingId] = useState<string | null>(null);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -86,10 +86,6 @@ const RecordingsTab: React.FC = () => {
 
   useEffect(() => {
     load();
-    return () => {
-      if (playingUrl) URL.revokeObjectURL(playingUrl);
-    };
-    
   }, [load]);
 
   const startRename = (rec: RecordingVM) => {
@@ -109,31 +105,40 @@ const RecordingsTab: React.FC = () => {
     }
   };
 
-  const play = async (rec: RecordingVM) => {
-    try {
-      if (playingUrl) URL.revokeObjectURL(playingUrl);
-      const res = await api.get(`/user/recordings/${rec.id}/file`, { responseType: 'blob' });
-      const url = URL.createObjectURL(res.data);
-      setPlayingUrl(url);
+  const getStreamUrl = (id: string) => {
+    const token = localStorage.getItem('token') || '';
+    return `${API_BASE_URL}/user/recordings/${id}/file?token=${encodeURIComponent(token)}`;
+  };
+
+  const getDownloadUrl = (id: string) => {
+    const token = localStorage.getItem('token') || '';
+    return `${API_BASE_URL}/user/recordings/${id}/file?token=${encodeURIComponent(token)}&download=1`;
+  };
+
+  const togglePlay = (rec: RecordingVM) => {
+    if (playingId === rec.id) {
+      setPlayingId(null);
+    } else {
+      setError(null);
       setPlayingId(rec.id);
-    } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Could not load the recording file.');
     }
   };
 
-  const download = async (rec: RecordingVM) => {
+  const download = (rec: RecordingVM) => {
     try {
-      const res = await api.get(`/user/recordings/${rec.id}/file`, { responseType: 'blob' });
-      const url = URL.createObjectURL(res.data);
+      setDownloadingId(rec.id);
+      const filename = `${(rec.name || 'recording').replace(/[^\w.-]+/g, '_')}.webm`;
+      const url = getDownloadUrl(rec.id);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${(rec.name || 'recording').replace(/[^\w.-]+/g, '_')}.webm`;
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
       a.remove();
-      URL.revokeObjectURL(url);
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Could not download the recording.');
+      setError('Could not download the recording.');
+    } finally {
+      setTimeout(() => setDownloadingId(null), 1200);
     }
   };
 
@@ -193,18 +198,50 @@ const RecordingsTab: React.FC = () => {
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                <button type="button" onClick={() => play(rec)} style={btnPrimary}>▶ Play</button>
-                <button type="button" onClick={() => download(rec)} style={btnGhost}>⬇ Download</button>
+                <button
+                  type="button"
+                  onClick={() => togglePlay(rec)}
+                  style={playingId === rec.id ? btnActive : btnPrimary}
+                >
+                  {playingId === rec.id ? '⏹ Close Player' : '▶ Play'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => download(rec)}
+                  disabled={downloadingId === rec.id}
+                  style={{ ...btnGhost, opacity: downloadingId === rec.id ? 0.7 : 1 }}
+                >
+                  {downloadingId === rec.id ? '⬇ Downloading…' : '⬇ Download'}
+                </button>
               </div>
             </div>
 
-            {playingId === rec.id && playingUrl && (
-              <video
-                src={playingUrl}
-                controls
-                autoPlay
-                style={{ width: '100%', marginTop: 14, borderRadius: 'var(--radius-md)', background: '#000' }}
-              />
+            {playingId === rec.id && (
+              <div style={{ marginTop: 14 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                  <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+                    Streaming: <strong style={{ color: '#fff' }}>{rec.name || 'Untitled recording'}</strong>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setPlayingId(null)}
+                    style={{ ...btnGhost, padding: '4px 10px', fontSize: 12 }}
+                  >
+                    ✕ Close
+                  </button>
+                </div>
+                <video
+                  key={rec.id}
+                  src={getStreamUrl(rec.id)}
+                  controls
+                  autoPlay
+                  playsInline
+                  onError={() => {
+                    setError('Could not stream recording. Try downloading the file instead.');
+                  }}
+                  style={{ width: '100%', borderRadius: 'var(--radius-md)', background: '#000', maxHeight: 480 }}
+                />
+              </div>
             )}
           </div>
         ))
@@ -384,6 +421,16 @@ const btnGhost: React.CSSProperties = {
   padding: '8px 16px',
   borderRadius: 'var(--radius-pill)',
   cursor: 'pointer',
+};
+
+const btnActive: React.CSSProperties = {
+  background: 'rgba(59, 130, 246, 0.2)',
+  border: '1px solid var(--accent-blue)',
+  color: '#60a5fa',
+  padding: '8px 16px',
+  borderRadius: 'var(--radius-pill)',
+  cursor: 'pointer',
+  fontWeight: 600,
 };
 
 // ── Page ──────────────────────────────────────────────────────────────────────

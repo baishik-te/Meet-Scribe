@@ -3,6 +3,10 @@
   max-width: 1320px;
   margin: 0 auto;
   padding: 8px 0 38px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
 }
 
 /* =========================
@@ -114,7 +118,7 @@
   display: grid;
   grid-template-columns: 330px minmax(0, 1fr);
   gap: 16px;
-  height: calc(100vh - 220px);
+  flex: 1;
   min-height: 590px;
 }
 
@@ -220,15 +224,40 @@
   padding: 12px;
 }
 
+.documents-list,
+.messages-area {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
 .documents-list::-webkit-scrollbar,
 .messages-area::-webkit-scrollbar {
-  width: 7px;
+  width: 5px;
+  height: 5px;
+}
+
+.documents-list::-webkit-scrollbar-track,
+.messages-area::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .documents-list::-webkit-scrollbar-thumb,
 .messages-area::-webkit-scrollbar-thumb {
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.2);
+  transition: background 0.2s ease;
+}
+
+.documents-list::-webkit-scrollbar-thumb:hover,
+.messages-area::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.documents-list::-webkit-scrollbar-button,
+.messages-area::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 /* =========================
@@ -1052,10 +1081,6 @@ input:focus-visible {
   line-height: 1.5;
   color: inherit;
   word-break: break-word;
-  /* Override the bubble's `white-space: pre-wrap`. Otherwise the newlines in
-     the source Markdown are preserved as literal blank lines on top of the
-     block-element margins, producing large vertical gaps. Block elements
-     manage their own spacing via margins. */
   white-space: normal;
 }
 

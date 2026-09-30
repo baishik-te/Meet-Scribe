@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from './AuthContext';
+import api from '../api/client';
 
 interface SocketContextType {
   socket: Socket | null;
@@ -23,15 +24,28 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   useEffect(() => {
     if (!user) return;
 
+    // Proactively fetch initial wallet balance from REST API so UI does not wait on socket
+    api.get('/user/wallet/balance')
+      .then((res) => {
+        if (res.data?.success && typeof res.data?.data?.balance === 'number') {
+          setRemainingBalance(res.data.data.balance);
+        }
+      })
+      .catch(() => {});
+
     const socketUrl = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
     const s = io(socketUrl, {
       query: { userId: user.id },
-      transports: ['websocket']
+      transports: ['websocket', 'polling']
     });
 
-    s.on('wallet:balance_update', (data: { balance: number; currentBurnRate: number }) => {
-      setRemainingBalance(data.balance);
-      setBurnRate(data.currentBurnRate);
+    s.on('wallet:balance_update', (data: { balance?: number; currentBurnRate?: number }) => {
+      if (typeof data?.balance === 'number') {
+        setRemainingBalance(data.balance);
+      }
+      if (typeof data?.currentBurnRate === 'number') {
+        setBurnRate(data.currentBurnRate);
+      }
     });
 
     s.on('wallet:low_warning', (data: { message: string }) => {

@@ -142,7 +142,7 @@ export class CallRecorder {
     }
 
     const localMic = this.room.localParticipant.getTrackPublication(Track.Source.Microphone);
-    if (localMic?.track?.mediaStreamTrack) {
+    if (localMic?.track?.mediaStreamTrack && !localMic.isMuted) {
       liveAudioSids.add(localMic.trackSid);
       this.addAudioSource(localMic.trackSid, localMic.track.mediaStreamTrack);
     }
@@ -164,9 +164,13 @@ export class CallRecorder {
 
   private addAudioSource(sid: string, mediaStreamTrack: MediaStreamTrack): void {
     if (!this.audioCtx || !this.dest || this.audioSources.has(sid)) return;
-    const src = this.audioCtx.createMediaStreamSource(new MediaStream([mediaStreamTrack]));
-    src.connect(this.dest);
-    this.audioSources.set(sid, src);
+    try {
+      const src = this.audioCtx.createMediaStreamSource(new MediaStream([mediaStreamTrack]));
+      src.connect(this.dest);
+      this.audioSources.set(sid, src);
+    } catch {
+      // Audio track may be in transition or detached
+    }
   }
 
   private renderLoop = () => {
@@ -174,27 +178,31 @@ export class CallRecorder {
     const ctx = this.ctx;
     const { width, height } = this.canvas;
 
-    ctx.fillStyle = '#0f121a';
-    ctx.fillRect(0, 0, width, height);
+    try {
+      ctx.fillStyle = '#0f121a';
+      ctx.fillRect(0, 0, width, height);
 
-    const els = Array.from(this.videoEls.values()).filter((v) => v.videoWidth > 0);
-    const n = els.length;
+      const els = Array.from(this.videoEls.values()).filter((v) => v.videoWidth > 0);
+      const n = els.length;
 
-    if (n === 0) {
-      ctx.fillStyle = '#8a93a6';
-      ctx.font = '28px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('Recording…', width / 2, height / 2);
-    } else {
-      const cols = Math.ceil(Math.sqrt(n));
-      const rows = Math.ceil(n / cols);
-      const cellW = width / cols;
-      const cellH = height / rows;
-      els.forEach((el, i) => {
-        const cx = (i % cols) * cellW;
-        const cy = Math.floor(i / cols) * cellH;
-        drawCover(ctx, el, cx, cy, cellW, cellH);
-      });
+      if (n === 0) {
+        ctx.fillStyle = '#8a93a6';
+        ctx.font = '28px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Recording…', width / 2, height / 2);
+      } else {
+        const cols = Math.ceil(Math.sqrt(n));
+        const rows = Math.ceil(n / cols);
+        const cellW = width / cols;
+        const cellH = height / rows;
+        els.forEach((el, i) => {
+          const cx = (i % cols) * cellW;
+          const cy = Math.floor(i / cols) * cellH;
+          drawCover(ctx, el, cx, cy, cellW, cellH);
+        });
+      }
+    } catch {
+      // Suppress frame draw errors
     }
 
     this.rafId = requestAnimationFrame(this.renderLoop);
@@ -210,15 +218,19 @@ function drawCover(
   w: number,
   h: number
 ): void {
-  const vw = video.videoWidth;
-  const vh = video.videoHeight;
-  if (!vw || !vh) return;
-  const scale = Math.max(w / vw, h / vh);
-  const dw = vw * scale;
-  const dh = vh * scale;
-  const dx = x + (w - dw) / 2;
-  const dy = y + (h - dh) / 2;
-  ctx.drawImage(video, dx, dy, dw, dh);
+  try {
+    const vw = video.videoWidth;
+    const vh = video.videoHeight;
+    if (!vw || !vh) return;
+    const scale = Math.max(w / vw, h / vh);
+    const dw = vw * scale;
+    const dh = vh * scale;
+    const dx = x + (w - dw) / 2;
+    const dy = y + (h - dh) / 2;
+    ctx.drawImage(video, dx, dy, dw, dh);
+  } catch {
+    // Suppress video draw errors during track transitions
+  }
 }
 
 function pickMimeType(): string {

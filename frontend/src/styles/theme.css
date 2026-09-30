@@ -25,6 +25,50 @@ body {
   overflow: hidden;
 }
 
+/* ==========================================================================
+   Global Scrollbar Styling (Identical to Notification Dropdown)
+   Applied to every page, sidebar, container, and section across the entire app
+   ========================================================================== */
+*, *::before, *::after, html, body {
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent !important;
+}
+
+*::-webkit-scrollbar,
+::-webkit-scrollbar {
+  width: 5px !important;
+  height: 5px !important;
+}
+
+*::-webkit-scrollbar-track,
+::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+*::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border-radius: 999px !important;
+  transition: background 0.2s ease !important;
+}
+
+*::-webkit-scrollbar-thumb:hover,
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.35) !important;
+}
+
+*::-webkit-scrollbar-corner,
+::-webkit-scrollbar-corner {
+  background: transparent !important;
+}
+
+*::-webkit-scrollbar-button,
+::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
 .app-container {
   display: flex;
   height: 100vh;
@@ -547,8 +591,56 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 24px 32px;
+  padding: 88px 32px 24px;
   overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.app-shell__main::-webkit-scrollbar,
+.main-viewport::-webkit-scrollbar,
+.admin-content-area::-webkit-scrollbar,
+.admin-sidebar::-webkit-scrollbar,
+.nav-rail::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.app-shell__main::-webkit-scrollbar-track,
+.main-viewport::-webkit-scrollbar-track,
+.admin-content-area::-webkit-scrollbar-track,
+.admin-sidebar::-webkit-scrollbar-track,
+.nav-rail::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.app-shell__main::-webkit-scrollbar-thumb,
+.main-viewport::-webkit-scrollbar-thumb,
+.admin-content-area::-webkit-scrollbar-thumb,
+.admin-sidebar::-webkit-scrollbar-thumb,
+.nav-rail::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  transition: background 0.2s ease;
+}
+
+.app-shell__main::-webkit-scrollbar-thumb:hover,
+.main-viewport::-webkit-scrollbar-thumb:hover,
+.admin-content-area::-webkit-scrollbar-thumb:hover,
+.admin-sidebar::-webkit-scrollbar-thumb:hover,
+.nav-rail::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.app-shell__main::-webkit-scrollbar-button,
+.main-viewport::-webkit-scrollbar-button,
+.admin-content-area::-webkit-scrollbar-button,
+.admin-sidebar::-webkit-scrollbar-button,
+.nav-rail::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 .nav-rail {
@@ -666,6 +758,130 @@ body {
   }
 }
 
+/* ── Global fixed header + profile avatar ── */
+.global-header {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 80px;
+  height: 64px;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  background: rgba(15, 18, 26, 0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.global-header__brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: var(--text-primary);
+  user-select: none;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+}
+
+.global-header__brand:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.global-header__logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 8px rgba(37, 99, 235, 0.45));
+}
+
+.global-header__title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: var(--text-primary);
+}
+
+.global-header__right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.global-header__avatar {
+  display: inline-flex;
+  border-radius: 50%;
+}
+
+.profile-avatar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-blue-hover));
+  border: 2px solid var(--border-color);
+  color: #ffffff;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  user-select: none;
+}
+
+.profile-avatar__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-avatar__initials {
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.profile-avatar__input {
+  display: none;
+}
+
+.profile-avatar__upload {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  min-width: 22px;
+  min-height: 22px;
+  width: 38%;
+  height: 38%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 2px solid var(--bg-main);
+  border-radius: 50%;
+  background: var(--accent-blue);
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.profile-avatar__upload:hover {
+  background: var(--accent-blue-hover);
+}
+
+.verified-badge {
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .global-header {
+    left: 0;
+    padding: 0 16px;
+  }
+}
+
 /* ── Auth pages ── */
 .auth-card {
   background-color: var(--bg-card);
@@ -698,6 +914,15 @@ body {
 }
 
 @keyframes auth-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
   to {
     transform: rotate(360deg);
   }
@@ -798,6 +1023,9 @@ body {
 }
 
 .call-toolbar {
+  position: relative;
+  z-index: 30;
+  pointer-events: auto;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -809,6 +1037,7 @@ body {
 }
 
 .call-toolbar__btn {
+  pointer-events: auto;
   width: 52px;
   height: 52px;
   border-radius: var(--radius-pill);

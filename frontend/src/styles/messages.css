@@ -1,21 +1,80 @@
 
 .msgx {
   display: flex;
-  gap: 16px;
   flex: 1;
   min-height: 0;
+  width: 100%;
+  height: 100%;
+  gap: 0;
+}
+
+.msgx-panel-sidebar {
+  height: 100%;
+  display: flex !important;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.msgx-panel-main {
+  height: 100%;
+  display: flex !important;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* ── Splitter Resizer (react-resizable-panels) ── */
+.msgx-resizer {
+  position: relative;
+  width: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: col-resize;
+  user-select: none;
+  touch-action: none;
+  background: transparent;
+  outline: none;
+  z-index: 10;
+  flex-shrink: 0;
+  transition: background-color 0.2s ease;
+}
+
+.msgx-resizer::after {
+  content: "";
+  width: 3px;
+  height: 36px;
+  border-radius: 4px;
+  background-color: var(--border-color);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.msgx-resizer:hover::after,
+.msgx-resizer[data-separator="active"]::after {
+  height: 56px;
+  width: 4px;
+  background-color: var(--accent-blue);
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.7);
+}
+
+.msgx-resizer:hover,
+.msgx-resizer[data-separator="active"] {
+  background-color: rgba(59, 130, 246, 0.08);
 }
 
 /* ── Conversation sidebar ── */
 .msgx-sidebar {
-  width: 320px;
-  flex-shrink: 0;
+  width: 100%;
+  height: 100%;
+  flex: 1;
   display: flex;
   flex-direction: column;
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 .msgx-sidebar__head {
@@ -92,7 +151,40 @@
 .msgx-sidebar__scroll {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 0 8px 12px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.msgx-sidebar__scroll::-webkit-scrollbar,
+.msgx-history::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.msgx-sidebar__scroll::-webkit-scrollbar-track,
+.msgx-history::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.msgx-sidebar__scroll::-webkit-scrollbar-thumb,
+.msgx-history::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  transition: background 0.2s ease;
+}
+
+.msgx-sidebar__scroll::-webkit-scrollbar-thumb:hover,
+.msgx-history::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.msgx-sidebar__scroll::-webkit-scrollbar-button,
+.msgx-history::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 .msgx-section {
@@ -123,6 +215,7 @@
   align-items: center;
   gap: 12px;
   width: 100%;
+  max-width: 100%;
   text-align: left;
   background: transparent;
   border: none;
@@ -131,6 +224,7 @@
   cursor: pointer;
   color: var(--text-primary);
   transition: background-color 0.15s ease;
+  box-sizing: border-box;
 }
 .msgx-item:hover {
   background-color: var(--bg-card-secondary);
@@ -143,12 +237,15 @@
 .msgx-item__body {
   flex: 1;
   min-width: 0;
+  overflow: hidden;
 }
 .msgx-item__row {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 8px;
+  width: 100%;
+  min-width: 0;
 }
 .msgx-item__name {
   font-size: 14px;
@@ -157,6 +254,8 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0;
+  flex: 1;
 }
 .msgx-item__time {
   font-size: 11px;
@@ -170,6 +269,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
   margin-top: 2px;
+  min-width: 0;
+  flex: 1;
 }
 .msgx-item__preview.is-unread {
   color: var(--text-primary);
@@ -239,6 +340,8 @@
 
 /* ── Conversation panel ── */
 .msgx-main {
+  width: 100%;
+  height: 100%;
   flex: 1;
   min-width: 0;
   display: flex;
@@ -247,6 +350,7 @@
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 .msgx-header {
@@ -565,4 +669,188 @@
   .msgx-header__back {
     display: inline-flex;
   }
+}
+
+/* ── Attachments & Previews ── */
+.msgx-composer-container {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-card-secondary);
+  border-top: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.msgx-attachment-preview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background-color: var(--bg-card);
+  border-bottom: 1px solid var(--border-color);
+  gap: 12px;
+}
+
+.msgx-attachment-preview__info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.msgx-attachment-preview__thumb {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid var(--border-color);
+}
+
+.msgx-attachment-preview__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-sm, 6px);
+  background-color: var(--bg-card-secondary);
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-blue);
+}
+
+.msgx-attachment-preview__meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.msgx-attachment-preview__name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 260px;
+}
+
+.msgx-attachment-preview__size {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.msgx-attachment-preview__close {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.msgx-attachment-preview__close:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+/* Bubble Attachment Styling */
+.msgx-bubble--with-attachment {
+  padding: 6px 8px;
+}
+
+.msgx-bubble__image-wrap {
+  overflow: hidden;
+  border-radius: 10px;
+  margin-bottom: 4px;
+}
+
+.msgx-bubble__image {
+  display: block;
+  max-width: 280px;
+  max-height: 300px;
+  width: auto;
+  height: auto;
+  border-radius: 10px;
+  object-fit: cover;
+  transition: opacity 0.2s ease;
+}
+
+.msgx-bubble__image:hover {
+  opacity: 0.92;
+}
+
+.msgx-bubble__file-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  min-width: 200px;
+  max-width: 300px;
+}
+
+.msgx-bubble__file-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.msgx-row--self .msgx-bubble__file-icon {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.msgx-row--other .msgx-bubble__file-icon {
+  color: var(--accent-blue);
+}
+
+.msgx-bubble__file-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.msgx-bubble__file-name {
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.msgx-bubble__file-size {
+  font-size: 11px;
+  opacity: 0.75;
+}
+
+.msgx-bubble__file-download {
+  color: inherit;
+  opacity: 0.85;
+  padding: 6px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.msgx-bubble__file-download:hover {
+  opacity: 1;
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.msgx-bubble__caption {
+  padding: 4px 6px 2px;
+  font-size: 14px;
 }

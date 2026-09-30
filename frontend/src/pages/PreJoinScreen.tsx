@@ -4,11 +4,20 @@ import React, { useEffect, useRef } from 'react';
 import { useMediaDevices } from '../hooks/useMediaDevices';
 import type { PreJoinConfig } from '../types/viewModels';
 
+// --- Premium SVG Icons ---
+const Icons = {
+  Camera: () => <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>,
+  CameraOff: () => <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 16v-4l7-5v10l-7-5z"/><path d="M1 1l22 22"/><path d="M16 11V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10"/></svg>,
+  Mic: () => <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>,
+  MicOff: () => <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+};
+
 export interface PreJoinScreenProps {
   room: string;
   callId: string | null;
   token: string | null;
   onConfirm: (config: PreJoinConfig) => void;
+  onCancel?: () => void;
 }
 
 export const PreJoinScreen: React.FC<PreJoinScreenProps> = ({
@@ -16,6 +25,7 @@ export const PreJoinScreen: React.FC<PreJoinScreenProps> = ({
   callId,
   token,
   onConfirm,
+  onCancel,
 }) => {
   const {
     state,
@@ -199,8 +209,9 @@ export const PreJoinScreen: React.FC<PreJoinScreenProps> = ({
             onClick={toggleCamera}
             aria-label={state.cameraEnabled ? 'Turn camera off' : 'Turn camera on'}
             aria-pressed={state.cameraEnabled}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
-            {state.cameraEnabled ? '📷' : '🚫'}
+            {state.cameraEnabled ? <Icons.Camera /> : <Icons.CameraOff />}
           </button>
           <button
             type="button"
@@ -212,21 +223,36 @@ export const PreJoinScreen: React.FC<PreJoinScreenProps> = ({
               state.micEnabled ? 'Turn microphone off' : 'Turn microphone on'
             }
             aria-pressed={state.micEnabled}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
-            {state.micEnabled ? '🎤' : '🔇'}
+            {state.micEnabled ? <Icons.Mic /> : <Icons.MicOff />}
           </button>
         </div>
 
-        {/* Confirm / join */}
-        <button
-          type="button"
-          className="admin-btn"
-          style={{ alignSelf: 'center', minWidth: 200 }}
-          onClick={handleConfirm}
-          aria-label="Join the call now"
-        >
-          Join now
-        </button>
+        {/* Confirm / join or cancel */}
+        <div style={{ display: 'flex', gap: 14, justifyContent: 'center', marginTop: 8 }}>
+          <button
+            type="button"
+            className="call-toolbar__btn call-toolbar__btn--danger"
+            style={{ width: 'auto', padding: '0 24px', borderRadius: 'var(--radius-md)', fontWeight: 500 }}
+            onClick={() => {
+              stop();
+              onCancel?.();
+            }}
+            aria-label="Cancel and leave call"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="admin-btn"
+            style={{ minWidth: 180 }}
+            onClick={handleConfirm}
+            aria-label="Join the call now"
+          >
+            Join now
+          </button>
+        </div>
       </div>
     </div>
   );

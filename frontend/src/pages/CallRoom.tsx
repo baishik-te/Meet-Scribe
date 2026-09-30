@@ -16,6 +16,28 @@ import { mapMediaError } from '../hooks/useMediaDevices';
 import type { PreJoinConfig } from '../types/viewModels';
 import type { CallToolbarState } from '../types/media';
 
+// --- Premium SVG Icons ---
+const Icons = {
+  Flame: () => <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>,
+  Diamond: () => <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 3h12l4 6-10 13L2 9Z"/></svg>,
+  Camera: () => <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>,
+  CameraOff: () => <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 16v-4l7-5v10l-7-5z"/><path d="M1 1l22 22"/><path d="M16 11V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10"/></svg>,
+  Mic: () => <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>,
+  MicOff: () => <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>,
+  ScreenShare: () => <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>,
+  Record: () => <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4" fill="currentColor"/></svg>,
+  Chat: () => <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
+  People: () => <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+  HandRaised: () => <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0v4"/><path d="M14 10V4a2 2 0 0 0-4 0v6"/><path d="M10 10.5V3a2 2 0 0 0-4 0v9"/><path d="M6 14v-2a2 2 0 1 0-4 0v5.5a8.5 8.5 0 0 0 17 0V11a2 2 0 1 0-4 0v4"/></svg>,
+  Smile: () => <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>,
+  GalleryView: () => <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1" ry="1"/><rect x="14" y="3" width="7" height="7" rx="1" ry="1"/><rect x="14" y="14" width="7" height="7" rx="1" ry="1"/><rect x="3" y="14" width="7" height="7" rx="1" ry="1"/></svg>,
+  SpeakerView: () => <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="12" rx="2" ry="2"/><rect x="4" y="18" width="4" height="3" rx="1"/><rect x="10" y="18" width="4" height="3" rx="1"/><rect x="16" y="18" width="4" height="3" rx="1"/></svg>,
+  PhoneDown: () => <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.42 19.42 0 0 1-7-7 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91"/><line x1="23" y1="1" x2="1" y2="23"/></svg>,
+  Transcription: () => <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>,
+  Note: () => <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>,
+  Send: () => <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>,
+};
+
 type CallPhase = 'prejoin' | 'connecting' | 'in-call';
 
 export const CallRoom: React.FC = () => {
@@ -76,6 +98,7 @@ export const CallRoom: React.FC = () => {
     if (phase !== 'in-call' || !socket) return;
 
     socket.emit('join:room', initialRoom);
+    socket.emit('call:sync_balance', { roomName: initialRoom, callId });
 
     const handleTerminated = (data: { message: string }) => {
     
@@ -129,6 +152,29 @@ export const CallRoom: React.FC = () => {
     };
   }, [room]);
 
+  // Send beacon to end/leave call immediately if user closes window or tab
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (callId) {
+        const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
+        const payload = JSON.stringify({ callId, userId: user?.id, reason: 'WINDOW_CLOSED' });
+        const blob = new Blob([payload], { type: 'application/json' });
+        if (navigator.sendBeacon) {
+          navigator.sendBeacon(`${baseUrl}/user/calls/leave`, blob);
+        }
+      }
+      roomRef.current?.disconnect();
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('pagehide', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('pagehide', handleBeforeUnload);
+    };
+  }, [callId, user]);
+
   // Disconnect the room, stop capture, and clear any pending redirect on unmount.
   useEffect(() => {
     return () => {
@@ -139,7 +185,7 @@ export const CallRoom: React.FC = () => {
         clearTimeout(terminationTimerRef.current);
       }
     };
-  }, []);
+  }, [callId]);
 
   // Upload a finished recording blob to the backend (saved under /uploads).
   const uploadRecording = async (blob: Blob, durationSeconds: number) => {
@@ -187,12 +233,37 @@ export const CallRoom: React.FC = () => {
       );
     };
 
+    const handleLocalTrackChange = () => {
+      if (!lkRoom.localParticipant) return;
+      const cam = lkRoom.localParticipant.isCameraEnabled;
+      const mic = lkRoom.localParticipant.isMicrophoneEnabled;
+      const screen = lkRoom.localParticipant.isScreenShareEnabled;
+      setToolbar((prev) => ({
+        ...prev,
+        cameraEnabled: cam,
+        micEnabled: mic,
+        screenSharing: screen,
+      }));
+    };
+
     lkRoom.on(RoomEvent.ParticipantConnected, syncParticipants);
-    lkRoom.on(RoomEvent.ParticipantDisconnected, syncParticipants);
+    lkRoom.on(RoomEvent.ParticipantDisconnected, (participant) => {
+      syncParticipants();
+      const remainingRemotes = Array.from(lkRoom.remoteParticipants.values()).filter(
+        (p) => !p.identity?.startsWith('transcriber-') && p.identity !== participant?.identity
+      );
+      if (remainingRemotes.length === 0) {
+        setInfoNotice('Other participant has left the call. You are still in the room.');
+      }
+    });
     lkRoom.on(RoomEvent.TrackSubscribed, syncParticipants);
     lkRoom.on(RoomEvent.TrackUnsubscribed, syncParticipants);
     lkRoom.on(RoomEvent.TrackPublished, syncParticipants);
     lkRoom.on(RoomEvent.TrackUnpublished, syncParticipants);
+    lkRoom.on(RoomEvent.LocalTrackPublished, handleLocalTrackChange);
+    lkRoom.on(RoomEvent.LocalTrackUnpublished, handleLocalTrackChange);
+    lkRoom.on(RoomEvent.TrackMuted, handleLocalTrackChange);
+    lkRoom.on(RoomEvent.TrackUnmuted, handleLocalTrackChange);
 
     lkRoom.on(RoomEvent.Disconnected, () => {
       if (hasConnectedRef.current && intentionalLeaveRef.current) {
@@ -246,9 +317,9 @@ export const CallRoom: React.FC = () => {
     if (!ok) {
       const mapped = mapMediaError(error, 'camera');
       setToolbarError(mapped.message);
-      if (mapped.kind === 'denied' || mapped.kind === 'inUse') {
-        setCameraDisabled(true);
-      }
+    } else {
+      setCameraDisabled(false);
+      setToolbarError(null);
     }
   };
 
@@ -263,9 +334,9 @@ export const CallRoom: React.FC = () => {
     if (!ok) {
       const mapped = mapMediaError(error, 'microphone');
       setToolbarError(mapped.message);
-      if (mapped.kind === 'denied' || mapped.kind === 'inUse') {
-        setMicDisabled(true);
-      }
+    } else {
+      setMicDisabled(false);
+      setToolbarError(null);
     }
   };
 
@@ -292,11 +363,17 @@ export const CallRoom: React.FC = () => {
         return;
       }
       try {
+        // Inform backend to enable recording flag and deduct recording rate in billing
+        await api.post('/user/calls/recording', { callId, enable: true }).catch((e) => {
+          console.warn('[CallRoom] Backend recording toggle error:', e?.message);
+        });
+
         const rec = new CallRecorder(room);
         rec.start();
         recorderRef.current = rec;
         setToolbar((prev) => ({ ...prev, recording: true }));
         setInfoNotice(null);
+        setToolbarError(null);
       } catch (err) {
         console.error('Failed to start recording:', err);
         setToolbarError('Could not start recording.');
@@ -305,6 +382,10 @@ export const CallRoom: React.FC = () => {
       setToolbar((prev) => ({ ...prev, recording: false }));
       const rec = recorderRef.current;
       recorderRef.current = null;
+
+      // Inform backend that recording has ended
+      await api.post('/user/calls/recording', { callId, enable: false }).catch(() => {});
+
       if (!rec) return;
       try {
         setInfoNotice('Saving recording…');
@@ -375,13 +456,21 @@ export const CallRoom: React.FC = () => {
 
     if (shouldCallEndEndpoint(callId)) {
       try {
-        await api.post('/user/calls/end', { callId });
+        await api.post('/user/calls/end', { callId, reason: 'USER_ENDED' });
       } catch {
         // Even if the end endpoint fails, still disconnect and navigate away.
       }
     }
     if (room) {
       await room.disconnect();
+    }
+    navigate('/dashboard');
+  };
+
+  const handlePreJoinCancel = async () => {
+    intentionalLeaveRef.current = true;
+    if (callId) {
+      await api.post('/user/calls/end', { callId, reason: 'PREJOIN_CANCEL' }).catch(() => {});
     }
     navigate('/dashboard');
   };
@@ -425,6 +514,7 @@ export const CallRoom: React.FC = () => {
           callId={callId}
           token={initialToken}
           onConfirm={handlePreJoinConfirm}
+          onCancel={handlePreJoinCancel}
         />
       </>
     );
@@ -462,11 +552,11 @@ export const CallRoom: React.FC = () => {
           </div>
 
           <div style={{ display: 'flex', gap: 12 }}>
-            <div className="pill-badge">
-              🔥 {burnRate} Tokens/min
+            <div className="pill-badge" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Icons.Flame /> {burnRate} Tokens/min
             </div>
-            <div className="pill-badge" style={{ borderColor: 'var(--accent-blue)', color: 'var(--accent-blue)' }}>
-              💎 Balance: {remainingBalance !== null ? remainingBalance : 'Synchronizing…'}
+            <div className="pill-badge" style={{ borderColor: 'var(--accent-blue)', color: 'var(--accent-blue)', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Icons.Diamond /> Balance: {remainingBalance !== null ? remainingBalance : 'Synchronizing…'}
             </div>
           </div>
         </div>
@@ -493,9 +583,10 @@ export const CallRoom: React.FC = () => {
                     position: 'absolute',
                     inset: 0,
                     padding: 16,
-                    paddingBottom: screenActive ? 150 : 96,
+                    paddingBottom: screenActive ? 160 : 96,
                     display: screenActive ? 'block' : 'none',
                     zIndex: 1,
+                    pointerEvents: 'none',
                   }}
                 >
                   <ScreenShareView room={room} onActiveChange={setScreenActive} />
@@ -510,10 +601,10 @@ export const CallRoom: React.FC = () => {
                     position: 'absolute',
                     left: 16,
                     right: 16,
-                    bottom: 92,
+                    bottom: 104,
                     display: 'flex',
                     gap: 12,
-                    zIndex: 2,
+                    zIndex: 10,
                     overflowX: 'auto',
                     paddingBottom: 4,
                   }}
@@ -621,28 +712,36 @@ export const CallRoom: React.FC = () => {
                 className="call-toolbar"
                 role="toolbar"
                 aria-label="Call controls"
-                style={{ position: 'absolute', bottom: 24 }}
+                style={{
+                  position: 'absolute',
+                  bottom: 24,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  zIndex: 30,
+                  pointerEvents: 'auto',
+                }}
               >
                 <button
                   type="button"
                   onClick={toggleCamera}
-                  disabled={cameraDisabled}
-                  className={`call-toolbar__btn${toolbar.cameraEnabled && !cameraDisabled ? ' call-toolbar__btn--active' : ''}`}
+                  className={`call-toolbar__btn${toolbar.cameraEnabled ? ' call-toolbar__btn--active' : ''}`}
                   aria-label={toolbar.cameraEnabled ? 'Turn camera off' : 'Turn camera on'}
                   aria-pressed={toolbar.cameraEnabled}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >
-                  {toolbar.cameraEnabled ? '📷' : '🚫'}
+                  {toolbar.cameraEnabled ? <Icons.Camera /> : <Icons.CameraOff />}
                 </button>
 
                 <button
                   type="button"
                   onClick={toggleMic}
-                  disabled={micDisabled}
-                  className={`call-toolbar__btn${toolbar.micEnabled && !micDisabled ? ' call-toolbar__btn--active' : ''}`}
+                  className={`call-toolbar__btn${toolbar.micEnabled ? ' call-toolbar__btn--active' : ''}`}
                   aria-label={toolbar.micEnabled ? 'Mute microphone' : 'Unmute microphone'}
                   aria-pressed={toolbar.micEnabled}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >
-                  {toolbar.micEnabled ? '🎤' : '🔇'}
+                  {toolbar.micEnabled ? <Icons.Mic /> : <Icons.MicOff />}
                 </button>
 
                 <button
@@ -651,8 +750,9 @@ export const CallRoom: React.FC = () => {
                   className={`call-toolbar__btn${toolbar.screenSharing ? ' call-toolbar__btn--active' : ''}`}
                   aria-label={toolbar.screenSharing ? 'Stop sharing screen' : 'Share screen'}
                   aria-pressed={toolbar.screenSharing}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >
-                  🖥
+                  <Icons.ScreenShare />
                 </button>
 
                 <button
@@ -661,8 +761,9 @@ export const CallRoom: React.FC = () => {
                   className={`call-toolbar__btn${toolbar.recording ? ' call-toolbar__btn--danger' : ''}`}
                   aria-label={toolbar.recording ? 'Stop recording' : 'Start recording'}
                   aria-pressed={toolbar.recording}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >
-                  ⏺
+                  <Icons.Record />
                 </button>
 
                 <button
@@ -671,8 +772,9 @@ export const CallRoom: React.FC = () => {
                   className={`call-toolbar__btn${toolbar.chatOpen ? ' call-toolbar__btn--active' : ''}`}
                   aria-label={toolbar.chatOpen ? 'Hide chat panel' : 'Show chat panel'}
                   aria-pressed={toolbar.chatOpen}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >
-                  💬
+                  <Icons.Chat />
                 </button>
 
                 <button
@@ -681,8 +783,9 @@ export const CallRoom: React.FC = () => {
                   className={`call-toolbar__btn${toolbar.peopleOpen ? ' call-toolbar__btn--active' : ''}`}
                   aria-label={toolbar.peopleOpen ? 'Hide participants' : 'Show participants'}
                   aria-pressed={toolbar.peopleOpen}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >
-                  👥
+                  <Icons.People />
                 </button>
 
                 <button
@@ -691,8 +794,9 @@ export const CallRoom: React.FC = () => {
                   className={`call-toolbar__btn${toolbar.handRaised ? ' call-toolbar__btn--active' : ''}`}
                   aria-label={toolbar.handRaised ? 'Lower hand' : 'Raise hand'}
                   aria-pressed={toolbar.handRaised}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >
-                  ✋
+                  <Icons.HandRaised />
                 </button>
 
                 <button
@@ -701,8 +805,9 @@ export const CallRoom: React.FC = () => {
                   className={`call-toolbar__btn${toolbar.reaction ? ' call-toolbar__btn--active' : ''}`}
                   aria-label="React"
                   aria-pressed={Boolean(toolbar.reaction)}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >
-                  😊
+                  <Icons.Smile />
                 </button>
 
                 <button
@@ -710,8 +815,9 @@ export const CallRoom: React.FC = () => {
                   onClick={toggleView}
                   className="call-toolbar__btn"
                   aria-label={`Switch to ${toolbar.viewMode === 'gallery' ? 'speaker' : 'gallery'} view`}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >
-                  {toolbar.viewMode === 'gallery' ? '🖼' : '🔲'}
+                  {toolbar.viewMode === 'gallery' ? <Icons.GalleryView /> : <Icons.SpeakerView />}
                 </button>
 
                 <button
@@ -719,8 +825,9 @@ export const CallRoom: React.FC = () => {
                   onClick={handleEndCall}
                   className="call-toolbar__btn call-toolbar__btn--danger"
                   aria-label="Leave call"
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >
-                  📞
+                  <Icons.PhoneDown />
                 </button>
               </div>
             </div>
@@ -752,26 +859,29 @@ export const CallRoom: React.FC = () => {
                   border: '1px solid var(--border-color)',
                   color: '#fff',
                   borderRadius: 'var(--radius-pill)',
-                  padding: '4px 12px',
-                  fontSize: 12,
-                  cursor: 'pointer'
+                  padding: '6px 14px',
+                  fontSize: 13,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6
                 }}
               >
-                🎙 {toolbar.transcribing ? 'On' : 'Off'}
+                <Icons.Transcription /> {toolbar.transcribing ? 'On' : 'Off'}
               </button>
             </div>
 
             {/* Upper section — live transcript (whisper bot output) */}
             <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
               <div style={{ padding: '10px 18px 6px', fontSize: 11, letterSpacing: 0.6, textTransform: 'uppercase', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 6 }}>
-                📝 Transcript
+                <Icons.Note /> Transcript
               </div>
               <div style={{ flex: 1, minHeight: 0, padding: '0 16px 12px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {transcripts.length === 0 ? (
                   <div style={{ color: 'var(--text-secondary)', fontSize: 13, textAlign: 'center', margin: 'auto' }}>
                     {toolbar.transcribing
                       ? 'Listening… speak to see the live transcript.'
-                      : 'Turn on transcription (🎙) to capture speech.'}
+                      : 'Turn on transcription to capture speech.'}
                   </div>
                 ) : (
                   transcripts.map((t) => (
@@ -787,12 +897,12 @@ export const CallRoom: React.FC = () => {
             {/* Lower section — chat (peer-to-peer via LiveKit data channel) */}
             <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', borderTop: '2px solid var(--border-color)' }}>
               <div style={{ padding: '10px 18px 6px', fontSize: 11, letterSpacing: 0.6, textTransform: 'uppercase', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 6 }}>
-                💬 Chat
+                <Icons.Chat /> Chat
               </div>
               <div style={{ flex: 1, minHeight: 0, padding: '0 16px 12px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {chatMessages.length === 0 ? (
                   <div style={{ color: 'var(--text-secondary)', fontSize: 13, textAlign: 'center', margin: 'auto' }}>
-                    No messages yet. Say hi 👋
+                    No messages yet. Say hi <Icons.Smile />
                   </div>
                 ) : (
                   chatMessages.map((msg) => (
@@ -831,10 +941,13 @@ export const CallRoom: React.FC = () => {
                     width: 40,
                     height: 40,
                     color: '#fff',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
                   }}
                 >
-                  ➤
+                  <Icons.Send />
                 </button>
               </form>
             </div>

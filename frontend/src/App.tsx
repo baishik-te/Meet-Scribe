@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
+import { NotificationProvider } from './context/NotificationContext';
 import { ProtectedRoute, AuthenticatedRoute } from './components/ProtectedRoute';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
@@ -46,42 +47,46 @@ export const App: React.FC = () => {
     <AuthProvider>
       <SocketProvider>
         <BrowserRouter>
-          <IncomingCallListener />
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/verify-otp" element={<VerifyOtp />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
+          <NotificationProvider>
+            <IncomingCallListener />
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/verify-otp" element={<VerifyOtp />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
 
-            {/* Standard User Protected Routes - requires ACTIVE status */}
-            <Route path="/dashboard" element={<ProtectedRoute requireActive={true}><UserDashboard /></ProtectedRoute>} />
-            <Route path="/meetings" element={<ProtectedRoute requireActive={true}><Meetings /></ProtectedRoute>} />
-            <Route path="/connections" element={<ProtectedRoute requireActive={true}><Connections /></ProtectedRoute>} />
-            <Route path="/profile" element={<ProtectedRoute requireActive={true}><Profile /></ProtectedRoute>} />
-            <Route path="/settings" element={<ProtectedRoute requireActive={true}><Settings /></ProtectedRoute>} />
-            <Route path="/library" element={<ProtectedRoute requireActive={true}><Library /></ProtectedRoute>} />
-            <Route path="/meetscribe" element={<ProtectedRoute requireActive={true}><MeetScribeAI /></ProtectedRoute>} />
-            <Route path="/call/room" element={<ProtectedRoute requireActive={true}><CallRoom /></ProtectedRoute>} />
+              {/* Standard User Protected Routes - requires ACTIVE status */}
+              <Route path="/dashboard" element={<ProtectedRoute requireActive={true}><UserDashboard /></ProtectedRoute>} />
+              <Route path="/meetings" element={<ProtectedRoute requireActive={true}><Meetings /></ProtectedRoute>} />
+              <Route path="/connections" element={<ProtectedRoute requireActive={true}><Connections /></ProtectedRoute>} />
+              <Route path="/messages" element={<Navigate to="/connections" replace />} />
+              <Route path="/connect" element={<Navigate to="/connections" replace />} />
+              <Route path="/profile" element={<ProtectedRoute requireActive={true}><Profile /></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute requireActive={true}><Settings /></ProtectedRoute>} />
+              <Route path="/library" element={<ProtectedRoute requireActive={true}><Library /></ProtectedRoute>} />
+              <Route path="/meetscribe" element={<ProtectedRoute requireActive={true}><MeetScribeAI /></ProtectedRoute>} />
+              <Route path="/call/room" element={<ProtectedRoute requireActive={true}><CallRoom /></ProtectedRoute>} />
 
-            {/* Admin Nested Protected Routes */}
-            <Route
-              path="/admin"
-              element={
-                <RoleProtectedRoute role="ADMIN">
-                  <AdminLayout />
-                </RoleProtectedRoute>
-              }
-            >
-              <Route index element={<AdminOverview />} />
-              <Route path="users" element={<AdminUsers />} />
-              <Route path="plans" element={<AdminPlans />} />
-              <Route path="tokens" element={<AdminLedger />} />
-              <Route path="calls" element={<AdminCalls />} />
-            </Route>
+              {/* Admin Nested Protected Routes */}
+              <Route
+                path="/admin"
+                element={
+                  <RoleProtectedRoute role="ADMIN">
+                    <AdminLayout />
+                  </RoleProtectedRoute>
+                }
+              >
+                <Route index element={<AdminOverview />} />
+                <Route path="users" element={<AdminUsers />} />
+                <Route path="plans" element={<AdminPlans />} />
+                <Route path="tokens" element={<AdminLedger />} />
+                <Route path="calls" element={<AdminCalls />} />
+              </Route>
 
-            {/* Catch-all fallback */}
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
+              {/* Catch-all fallback */}
+              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            </Routes>
+          </NotificationProvider>
         </BrowserRouter>
       </SocketProvider>
     </AuthProvider>

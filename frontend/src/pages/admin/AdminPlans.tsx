@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../api/client';
+import { formatBillingPeriod, formatBillingPeriodShort } from '../../lib/planSelection';
 
 export const AdminPlans: React.FC = () => {
   const [plans, setPlans] = useState<any[]>([]);
   const [newPlan, setNewPlan] = useState({
     name: '',
     price: 15,
+    billingPeriod: 'month',
     monthlyTokenQuota: 1500,
     videoRatePerMinute: 2,
     recordingRatePerMinute: 1,
@@ -38,6 +40,7 @@ export const AdminPlans: React.FC = () => {
       setNewPlan({
         name: '',
         price: 15,
+        billingPeriod: 'month',
         monthlyTokenQuota: 1500,
         videoRatePerMinute: 2,
         recordingRatePerMinute: 1,
@@ -57,6 +60,7 @@ export const AdminPlans: React.FC = () => {
       id: plan.id,
       name: plan.name,
       price: plan.price,
+      billingPeriod: plan.billingPeriod || 'month',
       monthlyTokenQuota: plan.monthlyTokenQuota,
       videoRatePerMinute: plan.videoRatePerMinute,
       recordingRatePerMinute: plan.recordingRatePerMinute,
@@ -75,6 +79,7 @@ export const AdminPlans: React.FC = () => {
       await api.patch(`/admin/plans/${editingPlan.id}`, {
         name: editingPlan.name,
         price: editingPlan.price,
+        billingPeriod: editingPlan.billingPeriod,
         monthlyTokenQuota: editingPlan.monthlyTokenQuota,
         videoRatePerMinute: editingPlan.videoRatePerMinute,
         recordingRatePerMinute: editingPlan.recordingRatePerMinute,
@@ -100,7 +105,7 @@ export const AdminPlans: React.FC = () => {
   return (
     <div>
       <div className="admin-card">
-        <h3 className="admin-card-header">Create Dynamic Rate Plan (Stripe Synchronized)</h3>
+        <h3 className="admin-card-header">Create Dynamic Rate Plan </h3>
         <form onSubmit={handleCreatePlan}>
           <div className="form-grid">
             <div className="form-group">
@@ -115,18 +120,32 @@ export const AdminPlans: React.FC = () => {
               />
             </div>
             <div className="form-group">
-              <label>Monthly Price ($)</label>
+              <label>Billing Cycle / Rate Interval</label>
+              <select
+                value={newPlan.billingPeriod}
+                onChange={(e) => setNewPlan({ ...newPlan, billingPeriod: e.target.value })}
+                className="dark-select"
+              >
+                <option value="month">/month (1 Month)</option>
+                <option value="3_months">/3 month (3 Months)</option>
+                <option value="6_months">/6 month (6 Months)</option>
+                <option value="year">/year (Per Year)</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label>Price ($) / {formatBillingPeriod(newPlan.billingPeriod)}</label>
               <input
                 required
                 type="number"
                 min="1"
+                step="0.01"
                 value={newPlan.price}
                 onChange={(e) => setNewPlan({ ...newPlan, price: Number(e.target.value) })}
                 className="dark-input"
               />
             </div>
             <div className="form-group">
-              <label>Monthly Token Quota</label>
+              <label>Token Quota ({formatBillingPeriod(newPlan.billingPeriod)})</label>
               <input
                 required
                 type="number"
@@ -190,7 +209,8 @@ export const AdminPlans: React.FC = () => {
             <thead>
               <tr>
                 <th>Plan</th>
-                <th>Price</th>
+                <th>Billing Cycle</th>
+                <th>Price / Rate</th>
                 <th>Token Allocation</th>
                 <th>Video</th>
                 <th>Recording</th>
@@ -203,7 +223,21 @@ export const AdminPlans: React.FC = () => {
               {plans.map((p) => (
                 <tr key={p.id}>
                   <td style={{ fontWeight: 600 }}>{p.name}</td>
-                  <td>${p.price}/mo</td>
+                  <td>
+                    <span
+                      className="pill-badge"
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 700,
+                        borderColor: 'rgba(59, 130, 246, 0.4)',
+                        color: 'var(--accent-blue)',
+                        padding: '2px 8px'
+                      }}
+                    >
+                      {p.billingPeriod === '3_months' ? '/3 month' : p.billingPeriod === '6_months' ? '/6 month' : p.billingPeriod === 'year' ? 'per year' : '/month'}
+                    </span>
+                  </td>
+                  <td>${p.price} <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>/{formatBillingPeriodShort(p.billingPeriod)}</span></td>
                   <td style={{ color: 'var(--accent-blue)', fontWeight: 600 }}>
                     {p.monthlyTokenQuota?.toLocaleString()}
                   </td>
@@ -212,7 +246,7 @@ export const AdminPlans: React.FC = () => {
                   <td>+{p.transcriptionRatePerMinute} t/m</td>
                   <td style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{p.stripePriceId}</td>
                   <td>
-                    <button 
+                    <button
                       onClick={() => handleEditClick(p)}
                       className="admin-btn-small"
                       style={{ padding: '4px 12px', fontSize: '13px' }}
@@ -248,21 +282,35 @@ export const AdminPlans: React.FC = () => {
                   />
                 </div>
                 <div className="form-group">
-                  <label>Monthly Price ($)</label>
+                  <label>Billing Cycle / Rate Interval</label>
+                  <select
+                    value={editingPlan.billingPeriod || 'month'}
+                    onChange={(e) => setEditingPlan({ ...editingPlan, billingPeriod: e.target.value })}
+                    className="dark-select"
+                  >
+                    <option value="month">/month (1 Month)</option>
+                    <option value="3_months">/3 month (3 Months)</option>
+                    <option value="6_months">/6 month (6 Months)</option>
+                    <option value="year">/year (Per Year)</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Price ($) / {formatBillingPeriod(editingPlan.billingPeriod)}</label>
                   <input
                     required
                     type="number"
                     min="1"
+                    step="0.01"
                     value={editingPlan.price}
                     onChange={(e) => setEditingPlan({ ...editingPlan, price: Number(e.target.value) })}
                     className="dark-input"
                   />
                   <small style={{ color: 'var(--text-secondary)', fontSize: '11px', marginTop: '4px', display: 'block' }}>
-                    Note: Changing price creates a new Stripe price
+                    Note: Changing price or billing interval creates a new Stripe price
                   </small>
                 </div>
                 <div className="form-group">
-                  <label>Monthly Token Quota</label>
+                  <label>Token Quota ({formatBillingPeriod(editingPlan.billingPeriod)})</label>
                   <input
                     required
                     type="number"
@@ -314,16 +362,16 @@ export const AdminPlans: React.FC = () => {
                 </div>
               </div>
               <div className="modal-actions">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={handleCloseModal}
                   className="admin-btn-secondary"
                   disabled={submitting}
                 >
                   Cancel
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className="admin-btn"
                   disabled={submitting}
                 >

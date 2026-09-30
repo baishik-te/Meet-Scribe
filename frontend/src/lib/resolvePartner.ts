@@ -6,18 +6,6 @@ export interface Partner {
   email: string;
 }
 
-/**
- * Resolve the counterpart (the "other" user) of a connection relative to the
- * current logged-in user.
- *
- * The backend (GET /user/connections) already computes this correctly and
- * returns it as `contact` (isRequester ? receiver : requester). We prefer that.
- *
- * When `contact` is absent, we fall back to a current-user-based comparison:
- * if the current user is the requester, the counterpart is the receiver;
- * otherwise the counterpart is the requester. This never yields the current
- * user, regardless of whether they initiated the connection.
- */
 export function resolvePartner(c: ConnectionVM, currentUserId: string): Partner {
   // Preferred: backend-resolved counterpart, already relative to the viewer.
   if (c.contact && c.contact.id) {

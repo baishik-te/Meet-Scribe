@@ -73,6 +73,7 @@ export const ScreenShareView: React.FC<ScreenShareViewProps> = ({ room, onActive
         background: '#000',
         borderRadius: 'var(--radius-md)',
         overflow: 'hidden',
+        pointerEvents: 'none',
       }}
     >
       <video

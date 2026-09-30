@@ -9,6 +9,7 @@ interface ChatHeaderProps {
   online?: boolean;
   onStartCall: () => void;
   callPending?: boolean;
+  canCall?: boolean;
   onBack: () => void;
   onBlock: () => void;
 }
@@ -20,6 +21,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
   online,
   onStartCall,
   callPending,
+  canCall = true,
   onBack,
   onBlock
 }) => {
@@ -59,10 +61,14 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
           type="button"
           className="msgx-iconbtn"
           onClick={onStartCall}
-          disabled={callPending}
+          disabled={callPending || !canCall}
           aria-label="Start video call"
-          title="Start video call"
-          style={{ color: 'var(--accent-blue)' }}
+          title={!canCall ? 'Connection must be accepted to start a call' : 'Start video call'}
+          style={{
+            color: canCall ? 'var(--accent-blue)' : 'var(--text-muted)',
+            cursor: canCall ? 'pointer' : 'not-allowed',
+            opacity: canCall ? 1 : 0.4
+          }}
         >
           <VideoIcon />
         </button>
@@ -106,11 +112,18 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
               <button
                 type="button"
                 role="menuitem"
+                disabled={!canCall}
                 onClick={() => {
+                  if (!canCall) return;
                   setMenuOpen(false);
                   onStartCall();
                 }}
-                style={menuItemStyle}
+                style={{
+                  ...menuItemStyle,
+                  opacity: canCall ? 1 : 0.4,
+                  cursor: canCall ? 'pointer' : 'not-allowed'
+                }}
+                title={!canCall ? 'Connection must be accepted to start a call' : undefined}
               >
                 Start video call
               </button>

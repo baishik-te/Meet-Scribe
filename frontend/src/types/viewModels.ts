@@ -27,6 +27,10 @@ export interface MessageVM {
   senderId: string;
   receiverId: string;
   body: string;
+  fileUrl?: string | null;
+  fileName?: string | null;
+  fileType?: string | null;
+  fileSize?: number | null;
   readAt: string | null;
   createdAt: string;
   updatedAt?: string;
@@ -49,6 +53,7 @@ export interface PlanVM {
   id: string;
   name: string;
   price: number;
+  billingPeriod?: 'month' | '3_months' | '6_months' | 'year' | string;
   monthlyTokenQuota: number;
   videoRatePerMinute: number;
   recordingRatePerMinute: number;
@@ -90,3 +95,103 @@ export interface PreJoinConfig {
   cameraEnabled: boolean;
   micEnabled: boolean;
 }
+
+export interface NotificationVM {
+  id: string;
+  userId: string;
+  type:
+    | 'CALL_INCOMING'
+    | 'MESSAGE_RECEIVED'
+    | 'PAYMENT_SUCCESS'
+    | 'PLAN_UPGRADE'
+    | 'CONNECTION_REQUEST'
+    | 'CONNECTION_ACCEPTED'
+    | 'SYSTEM';
+  title: string;
+  message: string;
+  data: Record<string, any>;
+  read: boolean;
+  readAt: string | null;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface DashboardAnalyticsVM {
+  period: 'week' | 'month';
+  days: number;
+  breakdown: {
+    videoCalls: number;
+    callRecordings: number;
+    liveTranscriptions: number;
+    geminiQueries: number;
+    totalSpent: number;
+  };
+  dailySeries: Array<{
+    date: string;
+    label: string;
+    video: number;
+    recording: number;
+    transcription: number;
+    gemini: number;
+    total: number;
+  }>;
+  quotaTracker: {
+    monthlyLimit: number;
+    currentBalance: number;
+    totalSpendableTokens?: number;
+    consumedThisCycle: number;
+    percentConsumed: number;
+    daysRemaining: number;
+    currentPeriodStart: string;
+    currentPeriodEnd: string;
+    billingPeriod?: string;
+    planName: string;
+  };
+}
+
+export interface ScheduledCallVM {
+  id: string;
+  userId: string;
+  title: string;
+  roomName: string;
+  scheduledAt: string;
+  durationMinutes: number;
+  participants: string[];
+  autoScribe: boolean;
+  status: 'UPCOMING' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
+}
+
+export interface RecentMeetingVM {
+  id: string;
+  roomName: string;
+  title: string;
+  date: string;
+  durationSeconds: number;
+  partner?: { id: string; name: string; avatarUrl?: string | null } | null;
+  hasRecording: boolean;
+  recordingId?: string | null;
+  recordingName?: string | null;
+  hasTranscript: boolean;
+  hasSummary: boolean;
+  summaryPreview?: string | null;
+}
+
+export interface ActionItemVM {
+  id: string;
+  userId: string;
+  callId?: string | null;
+  text: string;
+  sourceMeeting?: string | null;
+  completed: boolean;
+  priority: 'HIGH' | 'MEDIUM' | 'LOW';
+  createdAt: string;
+}
+
+export interface KeyTopicVM {
+  topic: string;
+  count: number;
+  sentiment: 'positive' | 'neutral' | 'urgent';
+  category: string;
+  relevance: number;
+}
+

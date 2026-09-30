@@ -8,6 +8,7 @@ export interface User {
   role: 'ADMIN' | 'USER';
   status?: 'INACTIVE' | 'ACTIVE' | 'SUSPENDED' | 'DELETED';
   emailVerified?: boolean;
+  avatarUrl?: string | null;
 }
 
 interface AuthContextType {
@@ -15,6 +16,7 @@ interface AuthContextType {
   token: string | null;
   login: (token: string, user: User) => void;
   logout: () => void;
+  refreshUser: () => Promise<void>;
   loading: boolean;
   isActive: boolean; // True if user is ACTIVE and emailVerified
   requiresVerification: boolean; // True if user is INACTIVE
@@ -31,12 +33,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const isActive = user?.status === 'ACTIVE' && user?.emailVerified === true;
   const requiresVerification = !!user && user.status === 'INACTIVE' && token !== null;
 
+  const refreshUser = async () => {
+    const res = await api.get('/auth/me');
+    setUser(res.data.data.user);
+  };
+
   useEffect(() => {
     const fetchMe = async () => {
       if (token) {
         try {
-          const res = await api.get('/auth/me');
-          setUser(res.data.data.user);
+          await refreshUser();
         } catch {
           logout();
         }
@@ -59,7 +65,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, loading, isActive, requiresVerification }}>
+    <AuthContext.Provider value={{ user, token, login, logout, refreshUser, loading, isActive, requiresVerification }}>
       {children}
     </AuthContext.Provider>
   );

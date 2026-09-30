@@ -3,8 +3,11 @@ node_modules/
 .env.*
 *.log
 uploads/*
+backend/uploads/*
 !.gitkeep
+!**/uploads/.gitkeep
 .kiro/
+.freebuff/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
