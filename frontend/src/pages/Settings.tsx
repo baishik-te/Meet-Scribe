@@ -2,8 +2,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
 import { InlineNotice, InlineNoticeVariant } from '../components/InlineNotice';
+import '../styles/settings.css';
 import api from '../api/client';
-import { isActivePlan, formatBillingPeriod, formatBillingPeriodShort } from '../lib/planSelection';
+import { useAuth } from '../context/AuthContext';
+import { isActivePlan, formatBillingPeriod } from '../lib/planSelection';
 import type { PlanVM, SubscriptionVM } from '../types/viewModels';
 
 export function isValidPasswordChange(newPassword: string, confirmPassword: string): boolean {
@@ -54,9 +56,9 @@ const Icons = {
 const FeatureRateItem = ({ icon, label, rate, unit, color }: { icon: React.ReactNode; label: string; rate: number; unit: string; color: { bg: string; text: string } }) => (
   <div style={{
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    padding: '8px 12px', background: 'rgba(148, 163, 184, 0.05)',
-    borderRadius: '8px', border: '1px solid rgba(148, 163, 184, 0.1)',
-    minWidth: '180px'
+    padding: '8px 12px', background: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.1)',
+    minWidth: '0', flex: '0 0 auto', minHeight: 42
   }}>
     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
       <div style={{
@@ -66,12 +68,12 @@ const FeatureRateItem = ({ icon, label, rate, unit, color }: { icon: React.React
       }}>
         {icon}
       </div>
-      <span style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: 500 }}>
+      <span style={{ fontSize: 13, color: '#f8fafc', fontWeight: 600 }}>
         {label}
       </span>
     </div>
-    <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', marginLeft: 16 }}>
-      {rate} <span style={{ fontSize: 11, color: 'var(--text-secondary)', fontWeight: 500 }}>{unit}</span>
+    <div style={{ fontSize: 13, fontWeight: 700, color: '#ffffff', marginLeft: 16 }}>
+      {rate} <span style={{ fontSize: 11, color: '#93c5fd', fontWeight: 600 }}>{unit}</span>
     </div>
   </div>
 );
@@ -81,7 +83,7 @@ const pageWrapperStyle: React.CSSProperties = {
   flexDirection: 'column',
   alignItems: 'center',
   width: '100%',
-  padding: '24px 20px 48px',
+  padding: '24px 16px 48px',
 };
 
 const contentContainerStyle: React.CSSProperties = {
@@ -89,12 +91,12 @@ const contentContainerStyle: React.CSSProperties = {
   maxWidth: '1000px',
   display: 'flex',
   flexDirection: 'column',
-  gap: '24px',
+  gap: '18px',
 };
 
 const cardStyle: React.CSSProperties = {
   background: 'var(--bg-card, #1a1c29)',
-  padding: '28px',
+  padding: '22px',
   borderRadius: 'var(--radius-lg, 16px)',
   border: '1px solid var(--border-color, #2a2d3d)',
   width: '100%',
@@ -129,6 +131,7 @@ const settingRowStyle: React.CSSProperties = {
 };
 
 export const Settings: React.FC = () => {
+  const { logout } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const initialTab = searchParams.get('tab') || 'pricing';
   const [activeTab, setActiveTab] = useState<'pricing' | 'devices' | 'security'>(
@@ -299,11 +302,11 @@ export const Settings: React.FC = () => {
 
   return (
     <AppShell>
-      <div style={pageWrapperStyle}>
+      <div className="settings-page" style={pageWrapperStyle}>
         <div style={contentContainerStyle}>
 
           {/* Page Header */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+          <div className="settings-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
             <div>
               <h1 style={{ margin: '0 0 6px 0', fontSize: '26px', fontWeight: 700, color: '#ffffff', letterSpacing: '-0.02em' }}>
                 Settings & Preferences
@@ -312,20 +315,24 @@ export const Settings: React.FC = () => {
                 Manage your subscription plans, token rate cards, hardware defaults, and security.
               </p>
             </div>
-            <div className="pill-badge" style={{ borderColor: 'var(--accent-blue)', background: 'rgba(37,99,235,0.1)' }}>
+            <div className="pill-badge settings-token-badge" style={{ borderColor: 'var(--accent-blue)', background: 'rgba(37,99,235,0.1)' }}>
               💎 {balance.toLocaleString()} Available Tokens
             </div>
           </div>
 
           {/* Navigation Tabs */}
-          <div style={{
+          <div className="settings-tabs" style={{
             display: 'flex',
             gap: 8,
             padding: '4px',
             background: 'var(--bg-card, #1c202e)',
             borderRadius: 'var(--radius-pill)',
             border: '1px solid var(--border-color)',
-            width: 'fit-content'
+            width: 'fit-content',
+            maxWidth: '100%',
+            overflowX: 'auto',
+            WebkitOverflowScrolling: 'touch',
+            scrollbarWidth: 'none',
           }}>
             <button
               type="button"
@@ -409,9 +416,9 @@ export const Settings: React.FC = () => {
 
               {/* Active Plan Overview Card */}
               {subscription && (
-                <div style={{
-                  background: 'linear-gradient(135deg, #1e3a5f 0%, #1c202e 100%)',
-                  border: '1px solid var(--accent-blue)',
+                <div className="settings-active-plan" style={{
+                  background: 'linear-gradient(135deg, rgba(30, 58, 95, 0.45) 0%, rgba(20, 24, 38, 0.9) 100%)',
+                  border: '1px solid rgba(148, 163, 184, 0.25)',
                   borderRadius: 'var(--radius-lg)',
                   padding: '24px',
                   display: 'flex',
@@ -420,39 +427,39 @@ export const Settings: React.FC = () => {
                   alignItems: 'center',
                 }}>
                   <div>
-                    <div style={{ fontSize: 11, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1 }}>Current Plan</div>
-                    <div style={{ fontSize: 22, fontWeight: 700, color: '#60a5fa' }}>{subscription.plan.name}</div>
-                    <div style={{ fontSize: 13, color: '#94a3b8' }}>
+                    <div style={{ fontSize: 11, color: '#cbd5e1', textTransform: 'uppercase', letterSpacing: 1.1, fontWeight: 700 }}>Current Plan</div>
+                    <div style={{ fontSize: 24, fontWeight: 800, color: '#93c5fd', marginTop: 2 }}>{subscription.plan.name}</div>
+                    <div style={{ fontSize: 13, color: '#f1f5f9', marginTop: 3, fontWeight: 500 }}>
                       ${subscription.plan.price} / {formatBillingPeriod(subscription.plan.billingPeriod)}
                     </div>
                   </div>
                   <div>
-                    <div style={{ fontSize: 11, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1 }}>Quota Allocation</div>
-                    <div style={{ fontSize: 22, fontWeight: 700, color: '#f8fafc' }}>
+                    <div style={{ fontSize: 11, color: '#cbd5e1', textTransform: 'uppercase', letterSpacing: 1.1, fontWeight: 700 }}>Quota Allocation</div>
+                    <div style={{ fontSize: 24, fontWeight: 800, color: '#ffffff', marginTop: 2 }}>
                       {subscription.plan.monthlyTokenQuota.toLocaleString()}
                     </div>
-                    <div style={{ fontSize: 13, color: '#94a3b8' }}>Tokens / {formatBillingPeriod(subscription.plan.billingPeriod)}</div>
+                    <div style={{ fontSize: 13, color: '#f1f5f9', marginTop: 3, fontWeight: 500 }}>Tokens / {formatBillingPeriod(subscription.plan.billingPeriod)}</div>
                   </div>
                   <div>
-                    <div style={{ fontSize: 11, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1 }}>Status</div>
+                    <div style={{ fontSize: 11, color: '#cbd5e1', textTransform: 'uppercase', letterSpacing: 1.1, fontWeight: 700 }}>Status</div>
                     <div style={{
                       display: 'inline-flex', alignItems: 'center', gap: 6,
-                      background: 'rgba(16,185,129,0.15)', color: '#34d399',
+                      background: 'rgba(16,185,129,0.18)', color: '#34d399',
                       padding: '4px 12px', borderRadius: 999, fontWeight: 700, fontSize: 13,
-                      marginTop: 2
+                      marginTop: 4, border: '1px solid rgba(16,185,129,0.3)'
                     }}>
                       <span style={{ width: 7, height: 7, background: '#34d399', borderRadius: '50%', display: 'inline-block' }} />
                       {subscription.status}
                     </div>
                     {subscription.currentPeriodEnd && (
-                      <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 4 }}>
+                      <div style={{ fontSize: 12, color: '#cbd5e1', marginTop: 6, fontWeight: 500 }}>
                         Renews {new Date(subscription.currentPeriodEnd).toLocaleDateString()}
                       </div>
                     )}
                   </div>
                   
                   {/* Aesthetic 2x2 Grid for Active Subscription Rates */}
-                  <div style={{ marginLeft: 'auto', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
+                  <div className="settings-active-rates" style={{ marginLeft: 'auto', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
                     <FeatureRateItem icon={<Icons.Video/>} label="Video Call" rate={subscription.plan.videoRatePerMinute} unit="t/min" color={{ bg: 'rgba(59, 130, 246, 0.15)', text: '#60a5fa' }} />
                     <FeatureRateItem icon={<Icons.Recording/>} label="Call Rec" rate={subscription.plan.recordingRatePerMinute} unit="t/min" color={{ bg: 'rgba(239, 68, 68, 0.15)', text: '#f87171' }} />
                     <FeatureRateItem icon={<Icons.Transcription/>} label="Live Transcribe" rate={subscription.plan.transcriptionRatePerMinute} unit="t/min" color={{ bg: 'rgba(168, 85, 247, 0.15)', text: '#c084fc' }} />
@@ -462,8 +469,8 @@ export const Settings: React.FC = () => {
               )}
 
               {/* Plans & Dynamic Rate Card Marketplace */}
-              <section style={cardStyle}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+              <section className="settings-card" style={cardStyle}>
+                <div className="settings-card-heading" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
                   <div>
                     <h2 style={{ margin: '0 0 4px 0', fontSize: '1.25rem', fontWeight: 700 }}>
                       Pricing & Plan Changes
@@ -496,17 +503,18 @@ export const Settings: React.FC = () => {
                   </button>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))', gap: 20 }}>
+                <div className="settings-plan-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14 }}>
                   {plans.map(p => {
                     const isActive = isActivePlan(p.id, activePlanId);
                     return (
                       <div
                         key={p.id}
+                        className="settings-plan-card"
                         style={{
                           background: isActive ? 'linear-gradient(135deg, rgba(37, 99, 235, 0.15) 0%, rgba(28, 32, 46, 0.8) 100%)' : 'var(--bg-card-secondary, #13151f)',
                           borderRadius: 'var(--radius-lg)',
                           border: isActive ? '2px solid var(--accent-blue)' : '1px solid var(--border-color)',
-                          padding: 24,
+                          padding: 16,
                           display: 'flex',
                           flexDirection: 'column',
                           gap: 12,
@@ -516,7 +524,7 @@ export const Settings: React.FC = () => {
                       >
                         {isActive && (
                           <div style={{
-                            position: 'absolute', top: -12, right: 16,
+                            position: 'absolute', top: 8, right: 16,
                             background: 'var(--accent-blue)', color: '#fff',
                             fontSize: 11, fontWeight: 700, padding: '3px 10px',
                             borderRadius: 999, letterSpacing: 0.5,
@@ -533,7 +541,7 @@ export const Settings: React.FC = () => {
                         </div>
                         
                         {/* Dynamic Rate Card Breakdown */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, margin: '12px 0' }}>
+                        <div className="settings-rate-list" style={{ display: 'flex', flexDirection: 'column', gap: 8, margin: '12px 0' }}>
                           <FeatureRateItem icon={<Icons.Video/>} label="Video Call" rate={p.videoRatePerMinute} unit="t/min" color={{ bg: 'rgba(59, 130, 246, 0.15)', text: '#3b82f6' }} />
                           <FeatureRateItem icon={<Icons.Recording/>} label="Call Recording" rate={p.recordingRatePerMinute} unit="t/min" color={{ bg: 'rgba(239, 68, 68, 0.15)', text: '#ef4444' }} />
                           <FeatureRateItem icon={<Icons.Transcription/>} label="Live Transcription" rate={p.transcriptionRatePerMinute} unit="t/min" color={{ bg: 'rgba(168, 85, 247, 0.15)', text: '#a855f7' }} />
@@ -691,6 +699,23 @@ export const Settings: React.FC = () => {
               </form>
             </section>
           )}
+
+          {/* Mobile-Only Sign Out Option */}
+          <div className="settings-mobile-signout">
+            <button
+              type="button"
+              onClick={logout}
+              className="settings-signout-btn"
+              title="Sign out of your account"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+              <span>Sign Out</span>
+            </button>
+          </div>
 
         </div>
       </div>

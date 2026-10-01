@@ -402,7 +402,12 @@ export const Connections: React.FC = () => {
   );
 
   return (
-    <AppShell title="Messages">
+    <AppShell
+      title="Messages"
+      fullHeight={isMobile}
+      hideTitleOnMobile={Boolean(selectedConnection)}
+      hideNavOnMobile={Boolean(selectedConnection)}
+    >
       {isMobile ? (
         <div className={`msgx msgx--mobile${selectedConnection ? ' msgx--has-active' : ''}`}>
           {!selectedConnection ? sidebarContent : mainContent}

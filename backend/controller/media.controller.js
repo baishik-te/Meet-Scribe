@@ -37,6 +37,26 @@ class MediaController {
         });
       }
 
+      const { resolvePlanRates } = require('../services/billingSync.service');
+      const TokenService = require('../services/token.service');
+      const SocketService = require('../services/socket.service');
+
+      // 1. Resolve user's active plan rates
+      const rates = await resolvePlanRates(req.user.id);
+      const geminiCost = rates.geminiRate || 5;
+
+      // 2. Pre-check token balance before AI summary generation
+      const balance = await TokenService.getBalance(req.user.id);
+      if (balance < geminiCost) {
+        return res.status(402).json({
+          success: false,
+          error: {
+            code: 'INSUFFICIENT_TOKENS',
+            message: `Minimum ${geminiCost} tokens required to generate Gemini transcript summary. Current balance: ${balance}`
+          }
+        });
+      }
+
       const transcripts = await Transcription.findAll({
         where: { callId },
         order: [['createdAt', 'ASC']],
@@ -66,7 +86,37 @@ class MediaController {
         model: process.env.GEMINI_MODEL || 'gemini-2.0-flash'
       });
 
-      return res.status(201).json({ success: true, data: { summary } });
+      // 3. Deduct tokens as per plan rate for Gemini transcript summary
+      const deductionResult = await TokenService.deductTokens({
+        userId: req.user.id,
+        amount: geminiCost,
+        transactionType: 'GEMINI_USAGE',
+        referenceId: summary.id,
+        featureReference: `summary:call:${callId}`,
+        metadata: {
+          callId,
+          summaryId: summary.id,
+          planName: rates.plan?.name,
+          geminiRate: geminiCost,
+          action: 'TRANSCRIPT_SUMMARY'
+        }
+      });
+
+      const updatedBalance = deductionResult?.wallet?.currentTokenBalance ?? (balance - geminiCost);
+
+      // Emit balance update via WebSocket so UI updates in real time
+      SocketService.emitToUser(req.user.id, 'wallet:balance_update', {
+        balance: updatedBalance
+      });
+
+      return res.status(201).json({
+        success: true,
+        data: {
+          summary,
+          balance: updatedBalance,
+          tokensDeducted: geminiCost
+        }
+      });
     } catch (error) {
       next(error);
     }

@@ -989,7 +989,14 @@ class UserController {
   static async toggleRecording(req, res, next) {
     const { callId, enable } = req.body;
     try {
-      const call = await Call.findByPk(callId);
+      if (!callId) {
+        return res.status(400).json({ success: false, error: { code: 'CALL_ID_REQUIRED', message: 'callId is required' } });
+      }
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(callId);
+      const call = isUuid
+        ? await Call.findByPk(callId)
+        : await Call.findOne({ where: { roomName: callId } });
+
       if (!call || !['RINGING', 'ACTIVE'].includes(call.status)) {
         return res.status(400).json({ success: false, error: { code: 'INVALID_CALL', message: 'Call is not active' } });
       }
@@ -1039,7 +1046,14 @@ class UserController {
   static async toggleTranscription(req, res, next) {
     const { callId, enable } = req.body;
     try {
-      const call = await Call.findByPk(callId);
+      if (!callId) {
+        return res.status(400).json({ success: false, error: { code: 'CALL_ID_REQUIRED', message: 'callId is required' } });
+      }
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(callId);
+      const call = isUuid
+        ? await Call.findByPk(callId)
+        : await Call.findOne({ where: { roomName: callId } });
+
       if (!call || !['RINGING', 'ACTIVE'].includes(call.status)) {
         return res.status(400).json({ success: false, error: { code: 'INVALID_CALL', message: 'Call is not available for transcription' } });
       }

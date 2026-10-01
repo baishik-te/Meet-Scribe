@@ -270,6 +270,26 @@ class PdfChatController {
         });
       }
 
+      const { resolvePlanRates } = require('../services/billingSync.service');
+      const TokenService = require('../services/token.service');
+      const SocketService = require('../services/socket.service');
+
+      // 1. Resolve user's active plan rates
+      const rates = await resolvePlanRates(req.user.id);
+      const geminiCost = rates.geminiRate || 5;
+
+      // 2. Pre-check token balance before AI query
+      const currentBalance = await TokenService.getBalance(req.user.id);
+      if (currentBalance < geminiCost) {
+        return res.status(402).json({
+          success: false,
+          error: {
+            code: 'INSUFFICIENT_TOKENS',
+            message: `Minimum ${geminiCost} tokens required to chat with PDF. Current balance: ${currentBalance}`
+          }
+        });
+      }
+
       // Ready when the session has at least one embedded chunk (including any
       // files just submitted with this message).
       const readyChunks = await DocumentChunk.count({ where: { documentId: sessionId } });
@@ -333,6 +353,29 @@ class PdfChatController {
         sources,
       });
 
+      // 3. Deduct tokens as per plan rate for Gemini PDF chat
+      const deductionResult = await TokenService.deductTokens({
+        userId: req.user.id,
+        amount: geminiCost,
+        transactionType: 'GEMINI_USAGE',
+        referenceId: saved.id,
+        featureReference: `pdf_chat:doc:${sessionId}`,
+        metadata: {
+          documentId: sessionId,
+          messageId: saved.id,
+          planName: rates.plan?.name,
+          geminiRate: geminiCost,
+          action: 'PDF_CHAT_QUERY'
+        }
+      });
+
+      const updatedBalance = deductionResult?.wallet?.currentTokenBalance ?? (currentBalance - geminiCost);
+
+      // Emit balance update via WebSocket so UI updates in real time
+      SocketService.emitToUser(req.user.id, 'wallet:balance_update', {
+        balance: updatedBalance
+      });
+
       return res.status(200).json({
         success: true,
         data: {
@@ -340,6 +383,8 @@ class PdfChatController {
           sources,
           messageId: saved.id,
           attachments: messageAttachments,
+          balance: updatedBalance,
+          tokensDeducted: geminiCost
         },
       });
     } catch (error) {

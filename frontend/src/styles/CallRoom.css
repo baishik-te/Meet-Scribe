@@ -1,0 +1,588 @@
+/* ==========================================================================
+   CallRoom — Microsoft Teams Mobile & Responsive Styles
+   ========================================================================== */
+
+/* Mobile Full-Screen Layout */
+.teams-mobile-call {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  max-height: 100dvh;
+  background: #000000;
+  overflow: hidden;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Full-Screen Video Canvas */
+.teams-video-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: #090c14;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.teams-full-video-tile {
+  width: 100% !important;
+  height: 100% !important;
+  aspect-ratio: unset !important;
+  border-radius: 0 !important;
+  border: none !important;
+  background: #000 !important;
+}
+
+/* Picture-in-Picture Local Self View */
+.teams-mobile-pip {
+  position: absolute;
+  right: 16px;
+  bottom: 82px;
+  width: 105px;
+  height: 145px;
+  border-radius: 14px;
+  overflow: hidden;
+  z-index: 25;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  background: #111420;
+}
+
+.teams-mobile-pip .teams-full-video-tile {
+  border-radius: 12px !important;
+}
+
+/* Top Header Overlay */
+.teams-mobile-top-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: calc(12px + env(safe-area-inset-top, 0px)) 16px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 30;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.4) 70%, transparent 100%);
+}
+
+.teams-top-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+
+.teams-header-btn {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: background 0.15s ease;
+}
+
+.teams-header-btn:active {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.teams-title-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 2px;
+}
+
+.teams-meeting-title {
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.teams-meeting-timer {
+  color: #cbd5e1;
+  font-size: 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.teams-top-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Bottom Call Controls (Teams Mobile) */
+.teams-mobile-bottom-controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 10px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  background: rgba(18, 20, 28, 0.96);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  z-index: 30;
+  box-sizing: border-box;
+}
+
+.teams-control-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.teams-control-btn--muted {
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.teams-control-btn:active {
+  background: rgba(255, 255, 255, 0.15);
+  transform: scale(0.95);
+}
+
+.teams-end-call-btn {
+  background: #a31515 !important;
+  color: #ffffff !important;
+  width: 60px !important;
+  height: 44px !important;
+  border-radius: 10px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  border: none !important;
+  cursor: pointer !important;
+  transition: background 0.15s ease, transform 0.15s ease !important;
+}
+
+.teams-end-call-btn:active {
+  background: #871010 !important;
+  transform: scale(0.95) !important;
+}
+
+/* More Menu Sheet */
+.teams-more-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  z-index: 1050;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.teams-more-sheet {
+  background: #181c28;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  padding: 16px 20px calc(16px + env(safe-area-inset-bottom, 0px));
+  width: 100%;
+  max-width: 500px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.teams-more-sheet-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.teams-more-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+
+.teams-more-item:active {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* ==========================================================================
+   Full-Screen Dedicated Chat & Details Overlay
+   ========================================================================== */
+.teams-chat-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  max-height: 100dvh;
+  background: #000000;
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* Top Purple Banner */
+.teams-return-banner {
+  background: #3b3a62;
+  color: #ffffff;
+  padding: calc(10px + env(safe-area-inset-top, 0px)) 16px 10px;
+  text-align: center;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+}
+
+.teams-return-banner:active {
+  background: #4a4878;
+}
+
+/* Header below Banner */
+.teams-overlay-header {
+  background: #10121a;
+  padding: 12px 16px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+.teams-overlay-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.teams-overlay-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.teams-cal-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #5b5fc7;
+  color: #ffffff;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.teams-overlay-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.teams-overlay-sub {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* Tabs: Exactly CHAT and DETAILS */
+.teams-overlay-tabs {
+  display: flex;
+  gap: 28px;
+  margin-top: 14px;
+}
+
+.teams-overlay-tab {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 0 0 10px;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.15s ease;
+}
+
+.teams-overlay-tab.active {
+  color: #ffffff;
+}
+
+.teams-overlay-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #5b5fc7;
+  border-radius: 3px 3px 0 0;
+}
+
+/* Overlay Body */
+.teams-overlay-body {
+  flex: 1 1 0%;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Large Center Avatar */
+.teams-center-avatar-wrap {
+  display: flex;
+  justify-content: center;
+  margin: 12px 0 20px;
+}
+
+.teams-center-avatar {
+  width: 140px;
+  height: 140px;
+  border-radius: 12px;
+  background: #333946;
+  display: grid;
+  place-items: center;
+  color: #cbd5e1;
+  font-size: 38px;
+  font-weight: 700;
+}
+
+/* System Events / Timestamps */
+.teams-date-divider {
+  text-align: center;
+  color: #94a3b8;
+  font-size: 12px;
+  margin: 10px 0;
+}
+
+.teams-system-event {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #cbd5e1;
+  font-size: 13px;
+  margin: 6px 0;
+}
+
+.teams-welcome-bubble {
+  background: #5b5fc7;
+  color: #ffffff;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 13.5px;
+  line-height: 1.45;
+  margin: 10px 0 12px;
+  max-width: 88%;
+  align-self: flex-end;
+  word-break: break-all;
+}
+
+.teams-welcome-bubble a {
+  color: #e0e7ff;
+  text-decoration: underline;
+  word-break: break-all;
+}
+
+/* Chat Messages */
+.teams-chat-bubble-row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+  max-width: 85%;
+}
+
+.teams-chat-bubble-row--self {
+  align-self: flex-end;
+}
+
+.teams-chat-bubble-row--other {
+  align-self: flex-start;
+}
+
+.teams-bubble-sender {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-bottom: 2px;
+}
+
+.teams-bubble-sender--self {
+  text-align: right;
+}
+
+.teams-bubble {
+  padding: 10px 14px;
+  font-size: 14px;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.teams-bubble--self {
+  background: #5b5fc7;
+  color: #ffffff;
+  border-radius: 14px 14px 2px 14px;
+}
+
+.teams-bubble--other {
+  background: #1e2330;
+  color: #ffffff;
+  border-radius: 14px 14px 14px 2px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Chat Bottom Composer Bar */
+.teams-chat-composer {
+  background: #10121a;
+  padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.teams-plus-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #5b5fc7;
+  color: #ffffff;
+  border: none;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.teams-composer-input-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: #1c202c;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 4px 10px 4px 14px;
+  gap: 6px;
+}
+
+.teams-composer-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #ffffff;
+  font-size: 14px;
+  padding: 6px 0;
+}
+
+.teams-composer-input::placeholder {
+  color: #94a3b8;
+}
+
+.teams-composer-action-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  padding: 4px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+.teams-send-btn {
+  background: #5b5fc7;
+  color: #fff;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+/* Details Tab Styling */
+.teams-details-card {
+  background: #141724;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.teams-details-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #94a3b8;
+  margin-bottom: 4px;
+}
+
+.teams-details-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: #ffffff;
+  word-break: break-all;
+}
+
+.teams-participant-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.teams-participant-row:last-child {
+  border-bottom: none;
+}

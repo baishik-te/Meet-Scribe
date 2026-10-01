@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import { useMediaDevices } from '../hooks/useMediaDevices';
+import { cameraDisplayLabel, cameraFacing } from '../lib/cameraFacing';
 import type { PreJoinConfig } from '../types/viewModels';
 
 // --- Premium SVG Icons ---
@@ -41,18 +42,36 @@ export const PreJoinScreen: React.FC<PreJoinScreenProps> = ({
 
   const cameraLive = state.status === 'granted' && state.cameraEnabled;
 
+  // Attach / detach the preview. Detaching matters as much as attaching: while a
+  // camera switch is in flight the hook clears `previewStream`, and the element
+  // must drop its reference before the OS will release the camera lock.
   useEffect(() => {
     const el = videoRef.current;
     if (!el) return;
     if (cameraLive && state.previewStream) {
       el.srcObject = state.previewStream;
-    } else {
-      el.srcObject = null;
+      return;
     }
+    try {
+      el.pause();
+    } catch {}
+    el.srcObject = null;
   }, [cameraLive, state.previewStream]);
 
+  // Facing of the camera that actually opened (reported by the track), falling
+  // back to the label of the selected device. Only a confirmed back camera is
+  // shown un-mirrored; front and desktop webcams stay mirrored.
+  const currentCam = state.cameras.find((c) => c.deviceId === state.selectedCameraId);
+  const activeFacing = state.activeFacingMode ?? cameraFacing(currentCam);
+  const isBackCamera = activeFacing === 'environment';
+
   const handleConfirm = () => {
-    
+    if (videoRef.current) {
+      try {
+        videoRef.current.pause();
+        videoRef.current.srcObject = null;
+      } catch {}
+    }
     stop();
     const config: PreJoinConfig = {
       callId,
@@ -60,6 +79,7 @@ export const PreJoinScreen: React.FC<PreJoinScreenProps> = ({
       token,
       selectedCameraId: state.selectedCameraId,
       selectedMicId: state.selectedMicId,
+      cameraFacingMode: activeFacing,
       cameraEnabled: state.cameraEnabled,
       micEnabled: state.micEnabled,
     };
@@ -69,7 +89,6 @@ export const PreJoinScreen: React.FC<PreJoinScreenProps> = ({
   const showCameraPicker = state.cameras.length > 1;
   const showMicPicker = state.microphones.length > 1;
 
-  
   const hasError = state.status === 'denied' || state.status === 'error';
   const requesting = state.status === 'requesting' || state.status === 'idle';
 
@@ -118,7 +137,7 @@ export const PreJoinScreen: React.FC<PreJoinScreenProps> = ({
               height: '100%',
               objectFit: 'cover',
               display: cameraLive ? 'block' : 'none',
-              transform: 'scaleX(-1)',
+              transform: isBackCamera ? 'none' : 'scaleX(-1)',
             }}
           />
           {!cameraLive && (
@@ -131,7 +150,9 @@ export const PreJoinScreen: React.FC<PreJoinScreenProps> = ({
               }}
             >
               {requesting
-                ? 'Requesting camera and microphone…'
+                ? state.cameras.length > 0
+                  ? 'Starting camera…'
+                  : 'Requesting camera and microphone…'
                 : state.status === 'granted'
                 ? 'Camera is off'
                 : 'Camera preview unavailable'}
@@ -168,11 +189,14 @@ export const PreJoinScreen: React.FC<PreJoinScreenProps> = ({
                   className="dark-select"
                   aria-label="Select camera"
                   value={state.selectedCameraId ?? ''}
+                  disabled={requesting}
                   onChange={(e) => selectCamera(e.target.value)}
                 >
+                  {/* On mobile/tablet the list is normalised to back camera
+                      first, front camera second, with plain labels. */}
                   {state.cameras.map((cam, i) => (
                     <option key={cam.deviceId} value={cam.deviceId}>
-                      {cam.label || `Camera ${i + 1}`}
+                      {cameraDisplayLabel(cam, i, state.cameras)}
                     </option>
                   ))}
                 </select>

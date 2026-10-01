@@ -6,9 +6,6 @@ const TranscriptionBot = require('./transcription-bot.service');
 
 const TERMINAL_STATUSES = ['ENDED', 'FAILED', 'TERMINATED_LOW_BALANCE'];
 
-/**
- * Instantly ends a call, sets duration, stops bots and LiveKit, and notifies both parties.
- */
 async function endCallInstantly(callIdOrRoomName, reason = 'USER_ENDED') {
   if (!callIdOrRoomName) return null;
 
@@ -34,8 +31,8 @@ async function endCallInstantly(callIdOrRoomName, reason = 'USER_ENDED') {
     }
 
     // Teardown LiveKit room and speech bot
-    await TranscriptionBot.stopForCall(call.id).catch(() => {});
-    await LiveKitService.endRoom(call.roomName).catch(() => {});
+    await TranscriptionBot.stopForCall(call.id).catch(() => { });
+    await LiveKitService.endRoom(call.roomName).catch(() => { });
 
     // Broadcast termination to room and both participants
     const payload = { callId: call.id, roomName: call.roomName, reason };

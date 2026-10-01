@@ -7,6 +7,8 @@ export interface MediaDeviceState {
   microphones: MediaDeviceInfo[];
   selectedCameraId?: string;
   selectedMicId?: string;
+  /** Which way the camera that actually opened is pointing, when known. */
+  activeFacingMode?: 'user' | 'environment';
   cameraEnabled: boolean;
   micEnabled: boolean;
   previewStream: MediaStream | null;

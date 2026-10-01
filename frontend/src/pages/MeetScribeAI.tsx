@@ -192,6 +192,15 @@ export const MeetScribeAI: React.FC = () => {
   const [asking, setAsking] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [mobileTab, setMobileTab] = useState<'docs' | 'chat'>('docs');
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth <= 768);
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const stagedFilesRef = useRef<StagedFileVM[]>([]);
@@ -350,6 +359,9 @@ export const MeetScribeAI: React.FC = () => {
         ...prev.filter((existing) => existing.id !== doc.id),
       ]);
       setSelectedId(res.data.data.sessionId || doc.id);
+      if (isMobile) {
+        setMobileTab('chat');
+      }
     } catch (err: any) {
       setError(
         err.response?.data?.error?.message ||
@@ -551,7 +563,12 @@ export const MeetScribeAI: React.FC = () => {
   ).length;
 
   return (
-    <AppShell title="MeetScribe AI">
+    <AppShell
+      title="MeetScribe AI"
+      fullHeight={isMobile}
+      hideTitleOnMobile={isMobile && mobileTab === 'chat'}
+      hideNavOnMobile={isMobile && mobileTab === 'chat'}
+    >
       <div className="pdf-workspace">
 
         {/* =========================
@@ -594,11 +611,35 @@ export const MeetScribeAI: React.FC = () => {
           onDismiss={() => setError(null)}
         />
 
+        {/* Mobile View Switcher */}
+        {isMobile && (
+          <div className="pdf-mobile-tabs" role="tablist" aria-label="Document and chat views">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={mobileTab === 'docs'}
+              className={`pdf-mobile-tab ${mobileTab === 'docs' ? 'active' : ''}`}
+              onClick={() => setMobileTab('docs')}
+            >
+              📄 Documents ({documents.length})
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={mobileTab === 'chat'}
+              className={`pdf-mobile-tab ${mobileTab === 'chat' ? 'active' : ''}`}
+              onClick={() => setMobileTab('chat')}
+            >
+              💬 AI Chat {selectedDoc ? `· ${selectedDoc.fileName.slice(0, 14)}` : ''}
+            </button>
+          </div>
+        )}
+
         {/* =========================
             Workspace
         ========================= */}
 
-        <div className="pdf-layout">
+        <div className={`pdf-layout ${isMobile ? (mobileTab === 'docs' ? 'pdf-layout--mobile-docs' : 'pdf-layout--mobile-chat') : ''}`}>
 
           {/* =========================
               Documents Panel
@@ -702,9 +743,12 @@ export const MeetScribeAI: React.FC = () => {
                       <button
                         type="button"
                         className="document-select"
-                        onClick={() =>
-                          setSelectedId(doc.id)
-                        }
+                        onClick={() => {
+                          setSelectedId(doc.id);
+                          if (isMobile) {
+                            setMobileTab('chat');
+                          }
+                        }}
                       >
                         <div className="document-icon">
                           <FileIcon />
@@ -815,34 +859,68 @@ export const MeetScribeAI: React.FC = () => {
                 {/* Chat Header */}
 
                 <div className="chat-header">
+                  {isMobile && (
+                    <button
+                      type="button"
+                      className="pdf-mobile-back-btn"
+                      onClick={() => setMobileTab('docs')}
+                      aria-label="Back to documents"
+                      title="Back to documents"
+                    >
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <line x1="19" y1="12" x2="5" y2="12" />
+                        <polyline points="12 19 5 12 12 5" />
+                      </svg>
+                    </button>
+                  )}
 
                   <div className="chat-document">
-
                     <div className="chat-document-icon">
                       <FileIcon />
                     </div>
 
-                    <div>
-                      <div className="chat-document-name">
+                    <div className="chat-document-info">
+                      <div className="chat-document-name" title={selectedDoc.fileName}>
                         {selectedDoc.fileName}
                       </div>
 
-                  <div className="chat-document-meta">
-                    {sessionDocuments.length > 1
-                      ? `${sessionDocuments.length} files in this chat · ${sessionDocuments.reduce((total, document) => total + (document.chunkCount || 0), 0)} chunks`
-                      : selectedDoc.status === 'READY'
-                        ? `${selectedDoc.pageCount} pages · ${selectedDoc.chunkCount} chunks`
-                        : STATUS_STYLES[selectedDoc.status].label}
-                  </div>
+                      <div className="chat-document-meta">
+                        {sessionDocuments.length > 1
+                          ? `${sessionDocuments.length} files in this chat · ${sessionDocuments.reduce((total, document) => total + (document.chunkCount || 0), 0)} chunks`
+                          : selectedDoc.status === 'READY'
+                            ? `${selectedDoc.pageCount} pages · ${selectedDoc.chunkCount} chunks`
+                            : STATUS_STYLES[selectedDoc.status].label}
+                      </div>
+
+                      {isMobile && (
+                        <div
+                          className={`chat-status chat-status--${activeChatStatus.toLowerCase()}`}
+                        >
+                          <span />
+                          {STATUS_STYLES[activeChatStatus].label}
+                        </div>
+                      )}
                     </div>
                   </div>
 
-                  <div
-                    className={`chat-status chat-status--${activeChatStatus.toLowerCase()}`}
-                  >
-                    <span />
-                    {STATUS_STYLES[activeChatStatus].label}
-                  </div>
+                  {!isMobile && (
+                    <div
+                      className={`chat-status chat-status--${activeChatStatus.toLowerCase()}`}
+                    >
+                      <span />
+                      {STATUS_STYLES[activeChatStatus].label}
+                    </div>
+                  )}
                 </div>
 
                 {/* Messages */}

@@ -14,4 +14,4 @@ cloudflared tunnel --url http://localhost:7880
 
 # Livekit server local
  Push-Location tools\livekit;                                                                                                      
-.\livekit\livekit-server.exe --config .\livekit.yaml                                                                                                                  
+.\livekit\livekit-server.exe --config .\livekit.yaml 

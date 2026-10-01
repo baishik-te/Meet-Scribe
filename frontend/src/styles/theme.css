@@ -583,8 +583,12 @@ body {
 .app-shell {
   display: flex;
   height: 100vh;
+  height: 100dvh;
   width: 100vw;
+  max-width: 100vw;
   background-color: var(--bg-main);
+  overflow: hidden;
+  position: relative;
 }
 
 .app-shell__main {
@@ -594,8 +598,11 @@ body {
   padding: 88px 32px 24px;
   overflow-y: auto;
   overflow-x: hidden;
+  min-width: 0;
+  box-sizing: border-box;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+  -webkit-overflow-scrolling: touch;
 }
 
 .app-shell__main::-webkit-scrollbar,
@@ -731,30 +738,56 @@ body {
 @media (max-width: 768px) {
   .nav-rail--bottom {
     flex-direction: row;
-    width: 100vw;
-    height: 64px;
-    padding: 0 12px;
+    width: 100%;
+    box-sizing: border-box;
+    height: calc(60px + env(safe-area-inset-bottom, 0px));
+    padding: 6px 16px calc(6px + env(safe-area-inset-bottom, 0px));
     position: fixed;
     bottom: 0;
     left: 0;
+    right: 0;
     border-right: none;
     border-top: 1px solid var(--border-color);
-    box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.45);
+    background: rgba(15, 18, 26, 0.95);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    z-index: 500;
   }
 
-  .nav-rail--bottom .nav-rail__group,
-  .nav-rail--bottom .nav-rail__group--secondary {
+  .nav-rail--bottom .nav-rail__group {
     flex-direction: row;
     padding: 0;
     border-top: none;
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+    justify-content: space-around;
+    gap: 8px;
+    flex: 1;
+  }
+
+  .nav-rail--bottom .nav-rail__btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    flex: 1;
+    max-width: 58px;
+  }
+
+  /* On mobile: profile & settings are directly in the global header! Hide secondary rail buttons and profile duplicate */
+  .nav-rail--bottom .nav-rail__group--secondary,
+  .nav-rail--bottom .nav-rail__btn--profile {
+    display: none !important;
+  }
+
+  .app-shell--hide-mobile-nav .nav-rail--bottom {
+    display: none !important;
   }
 
   /* Bottom-bar flyout labels sit above the icons */
   .nav-rail--bottom .nav-rail__label {
-    left: 50%;
-    top: auto;
-    bottom: calc(100% + 8px);
-    transform: translateX(-50%);
+    display: none !important;
   }
 }
 
@@ -770,9 +803,9 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 0 32px;
-  background: rgba(15, 18, 26, 0.72);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(15, 18, 26, 0.85);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--border-color);
 }
 
@@ -808,12 +841,41 @@ body {
 .global-header__right {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
+}
+
+.global-header__desktop-extra {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.global-header__icon-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-pill);
+  background: var(--btn-dock-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.global-header__icon-btn:hover {
+  background: var(--btn-dock-hover);
+  color: var(--accent-blue);
+  border-color: rgba(59, 130, 246, 0.4);
 }
 
 .global-header__avatar {
   display: inline-flex;
   border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .profile-avatar {
@@ -878,7 +940,82 @@ body {
 @media (max-width: 768px) {
   .global-header {
     left: 0;
-    padding: 0 16px;
+    height: 56px;
+    padding: 0 12px;
+    background: rgba(15, 18, 26, 0.94);
+  }
+
+  .global-header__brand {
+    gap: 8px;
+    min-width: 0;
+    max-width: calc(100% - 135px);
+  }
+
+  .global-header__logo {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+  }
+
+  .global-header__title {
+    font-size: 16px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .global-header__right {
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .global-header__icon-btn {
+    width: 34px;
+    height: 34px;
+  }
+
+  /* On mobile: delete/hide tokens and wide desktop action pills */
+  .global-header__desktop-extra {
+    display: none !important;
+  }
+
+  .app-shell__main {
+    box-sizing: border-box !important;
+    padding: 66px 16px calc(68px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .app-shell__main--full-height {
+    box-sizing: border-box !important;
+    padding: 56px 0 0 !important;
+    height: 100% !important;
+    max-height: 100dvh !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .app-shell__main--full-height-with-nav {
+    box-sizing: border-box !important;
+    padding: 62px 16px calc(68px + env(safe-area-inset-bottom, 0px)) !important;
+    height: 100% !important;
+    max-height: 100dvh !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .top-bar {
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .top-bar--hide-mobile {
+    display: none !important;
+  }
+
+  .top-title {
+    font-size: 18px;
   }
 }
 
@@ -1106,6 +1243,40 @@ body {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .call-toolbar {
+    padding: 8px 10px;
+    gap: 8px;
+    max-width: calc(100vw - 20px);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 16px;
+    justify-content: flex-start;
+  }
+  .call-toolbar::-webkit-scrollbar {
+    display: none;
+  }
+  .call-toolbar__btn {
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+  }
+  .self-view {
+    width: 110px;
+    height: 75px;
+    right: 8px;
+    bottom: 8px;
+  }
+  .meeting-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100dvh;
+    z-index: 600;
+  }
 }
 
 .msg--self {

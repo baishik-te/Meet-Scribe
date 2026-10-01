@@ -3,22 +3,21 @@ import { Track } from 'livekit-client';
 import type { Participant } from 'livekit-client';
 
 interface ParticipantTileProps {
-  
   participant: Participant;
-  
   displayName: string;
-  
   muteAudio?: boolean;
-  
   badgeSuffix?: string;
+  className?: string;
+  style?: React.CSSProperties;
 }
-
 
 export const ParticipantTile: React.FC<ParticipantTileProps> = ({
   participant,
   displayName,
   muteAudio = false,
   badgeSuffix,
+  className,
+  style,
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -104,6 +103,7 @@ export const ParticipantTile: React.FC<ParticipantTileProps> = ({
 
   return (
     <div
+      className={className}
       style={{
         position: 'relative',
         background: 'var(--bg-card-secondary, #1a1d27)',
@@ -116,6 +116,7 @@ export const ParticipantTile: React.FC<ParticipantTileProps> = ({
         justifyContent: 'center',
         border: isSpeaking ? '2px solid var(--accent-blue)' : '2px solid transparent',
         transition: 'border-color 120ms ease',
+        ...style,
       }}
     >
       {/* Camera feed. Kept mounted so tracks can attach; hidden behind the

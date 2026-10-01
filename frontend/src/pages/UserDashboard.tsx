@@ -219,6 +219,23 @@ export const UserDashboard: React.FC = () => {
     : 0;
   const daysRemaining = analytics?.quotaTracker.daysRemaining ?? 0;
 
+  // Format subscription plan name into two lines (Plan Name and Duration)
+  const rawPlanName = analytics?.quotaTracker.planName || 'MeetScribe Subscription - 1 Month';
+  let planTitle = rawPlanName;
+  let planSubtext = '';
+  if (rawPlanName.includes(' - ')) {
+    const parts = rawPlanName.split(' - ');
+    planTitle = parts[0].trim();
+    planSubtext = parts.slice(1).join(' - ').trim();
+  } else if (rawPlanName.includes('–')) {
+    const parts = rawPlanName.split('–');
+    planTitle = parts[0].trim();
+    planSubtext = parts.slice(1).join('–').trim();
+  } else {
+    planTitle = rawPlanName;
+    planSubtext = planBillingPeriod === '3_months' ? '3 Months' : planBillingPeriod === '6_months' ? '6 Months' : planBillingPeriod === 'year' ? '1 Year' : '1 Month';
+  }
+
   // Breakdown strictly from user's actual ledger transactions
   const breakdown = analytics?.breakdown || {
     videoCalls: 0,
@@ -255,26 +272,6 @@ export const UserDashboard: React.FC = () => {
       title={`Welcome back, ${user?.name ?? ''}`}
       headerRight={
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button
-            type="button"
-            onClick={() => navigate('/settings?tab=pricing')}
-            style={{
-              background: 'rgba(37, 99, 235, 0.1)',
-              border: '1px solid rgba(37, 99, 235, 0.3)',
-              color: 'var(--accent-blue)',
-              borderRadius: 'var(--radius-pill)',
-              padding: '6px 14px',
-              fontSize: 13,
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6
-            }}
-          >
-            <Icons.Settings />
-            <span>Settings</span>
-          </button>
           <div className="pill-badge" style={{ borderColor: 'var(--accent-blue)' }}>
             💎 {totalSpendable.toLocaleString()} Tokens
           </div>
@@ -289,88 +286,76 @@ export const UserDashboard: React.FC = () => {
 
         {/* ── 1. QUOTA TRACKER HERO BANNER ── */}
         <section className="quota-hero-banner">
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1.2 }}>
+          {/* Top Row: Spans full width of the card pushing badge to top-right on web */}
+          <div className="quota-header-row">
+            <span className="quota-header-title">
+              <span>
                 {planBillingPeriod === '3_months'
-                  ? '3-Month Quota Tracker'
+                  ? '3-Month Quota'
                   : planBillingPeriod === '6_months'
-                    ? '6-Month Quota Tracker'
+                    ? '6-Month Quota'
                     : planBillingPeriod === 'year'
-                      ? 'Annual Quota Tracker'
-                      : 'Monthly Quota Tracker'}
+                      ? 'Annual Quota'
+                      : 'Monthly Quota'}
               </span>
-              <span style={{
-                background: 'rgba(59, 130, 246, 0.2)',
-                color: '#60a5fa',
-                fontSize: 11,
-                fontWeight: 700,
-                padding: '2px 8px',
-                borderRadius: 999
-              }}>
-                {analytics?.quotaTracker.planName || 'Active Plan'}
-              </span>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginTop: 8 }}>
-              <h2 style={{ margin: 0, fontSize: '28px', fontWeight: 800, color: '#fff' }}>
-                {consumedQuota.toLocaleString()} <span style={{ fontSize: '16px', color: '#94a3b8', fontWeight: 500 }}>/ {totalQuotaLimit.toLocaleString()} Tokens Used</span>
-              </h2>
-              <span style={{ fontSize: 15, fontWeight: 700, color: percentConsumed > 85 ? '#f87171' : '#34d399' }}>
-                ({percentConsumed}% consumed)
-              </span>
-            </div>
-
-            {/* Glowing Progress Track */}
-            <div className="quota-progress-track">
-              <div
-                className="quota-progress-fill"
-                style={{
-                  width: `${percentConsumed}%`,
-                  background: percentConsumed > 85
-                    ? 'linear-gradient(90deg, #f59e0b 0%, #ef4444 100%)'
-                    : 'linear-gradient(90deg, #3b82f6 0%, #8b5cf6 70%, #10b981 100%)'
-                }}
-              />
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13, color: '#94a3b8', flexWrap: 'wrap', gap: 8 }}>
-              <span>
-                🗓 <strong>{daysRemaining} days</strong> remaining in this cycle
-                {analytics?.quotaTracker.currentPeriodEnd && ` (renews ${new Date(analytics.quotaTracker.currentPeriodEnd).toLocaleDateString()})`}
-              </span>
-              <span>
-                💎 <strong>{totalSpendable.toLocaleString()}</strong> total tokens available for spending
-              </span>
+              <span className="quota-title-break"><br /></span>{' '}
+              <span>Tracker</span>
+            </span>
+            <div className="quota-plan-badge">
+              <span className="quota-plan-badge-title">{planTitle}</span>
+              {planSubtext && <span className="quota-plan-badge-sub">{planSubtext}</span>}
             </div>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'flex-end' }}>
-            <button
-              type="button"
-              onClick={() => navigate('/settings?tab=pricing')}
-              style={{
-                background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-                color: '#fff',
-                border: 'none',
-                borderRadius: 'var(--radius-pill)',
-                padding: '10px 20px',
-                fontWeight: 600,
-                fontSize: 13,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                boxShadow: '0 4px 14px rgba(37, 99, 235, 0.4)',
-                whiteSpace: 'nowrap'
-              }}
-            >
-              <span>Change Plan & View Rates</span>
-              <span>→</span>
-            </button>
-            <span style={{ fontSize: 12, color: '#94a3b8' }}>
-              Manage billing tiers under Settings
-            </span>
+          {/* Main Body Row: Metrics on left, Actions on right */}
+          <div className="quota-body-row">
+            <div className="quota-hero-main">
+              <div className="quota-usage-row">
+                <h2 className="quota-usage-numbers">
+                  {consumedQuota.toLocaleString()} <span className="quota-usage-limit">/ {totalQuotaLimit.toLocaleString()} Tokens Used</span>
+                </h2>
+                <span className={`quota-consumed-percent ${percentConsumed > 85 ? 'warning' : 'good'}`}>
+                  ({percentConsumed}% consumed)
+                </span>
+              </div>
+
+              {/* Glowing Progress Track */}
+              <div className="quota-progress-track">
+                <div
+                  className="quota-progress-fill"
+                  style={{
+                    width: `${percentConsumed}%`,
+                    background: percentConsumed > 85
+                      ? 'linear-gradient(90deg, #f59e0b 0%, #ef4444 100%)'
+                      : 'linear-gradient(90deg, #3b82f6 0%, #8b5cf6 70%, #10b981 100%)'
+                  }}
+                />
+              </div>
+
+              <div className="quota-cycle-meta">
+                <span>
+                  🗓 <strong>{daysRemaining} days</strong> remaining in this cycle
+                  {analytics?.quotaTracker.currentPeriodEnd && ` (renews ${new Date(analytics.quotaTracker.currentPeriodEnd).toLocaleDateString()})`}
+                </span>
+                <span>
+                  💎 <strong>{totalSpendable.toLocaleString()}</strong> total tokens available for spending
+                </span>
+              </div>
+            </div>
+
+            <div className="quota-hero-actions">
+              <button
+                type="button"
+                onClick={() => navigate('/settings?tab=pricing')}
+                className="quota-change-plan-btn"
+              >
+                <span>Change Plan & View Rates</span>
+                <span>→</span>
+              </button>
+              <span className="quota-actions-hint">
+                Manage billing tiers under Settings
+              </span>
+            </div>
           </div>
         </section>
 
@@ -834,7 +819,7 @@ export const UserDashboard: React.FC = () => {
                 <div className="dash-scroll-list">
                   {recentMeetings.map((meeting) => (
                     <div key={meeting.id} className="recent-meeting-row">
-                      <div style={{ flex: 1, minWidth: 160 }}>
+                      <div className="recent-meeting-info" style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontWeight: 600, fontSize: 14, color: '#fff', marginBottom: 2 }}>
                           {meeting.title}
                         </div>
@@ -849,7 +834,7 @@ export const UserDashboard: React.FC = () => {
                         </div>
                       </div>
 
-                      <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                      <div className="recent-meeting-actions" style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
                         <button
                           type="button"
                           onClick={() => openTranscriptModal(meeting)}
@@ -1073,36 +1058,22 @@ export const UserDashboard: React.FC = () => {
                       const iconSymbol = topic.sentiment === 'positive' ? '✦' : topic.sentiment === 'urgent' ? '⚡' : '◈';
                       return (
                         <div key={idx} className="topic-card-item">
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 160 }}>
-                            <div className={`topic-pill ${sentimentClass}`} style={{ padding: '4px 10px', fontSize: 12 }}>
+                          <div className="topic-card-item__main">
+                            <div className={`topic-pill ${sentimentClass}`}>
                               <span>{iconSymbol}</span>
-                              <span style={{ fontWeight: 600 }}>{topic.topic}</span>
+                              <span className="topic-pill-text">{topic.topic}</span>
                             </div>
-                            <span style={{ fontSize: 11, color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            <span className="topic-card-item__desc">
                               {(topic as any).description || 'Discussion point from recent meeting'}
                             </span>
                           </div>
 
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                            <span style={{
-                              background: 'rgba(255, 255, 255, 0.05)',
-                              color: 'var(--text-secondary)',
-                              borderRadius: '6px',
-                              padding: '2px 8px',
-                              fontSize: 11,
-                              fontWeight: 500
-                            }}>
+                          <div className="topic-card-item__meta">
+                            <span className="topic-category-badge">
                               {topic.category || 'Topic'}
                             </span>
-                            <span style={{
-                              background: 'rgba(37, 99, 235, 0.15)',
-                              color: '#60a5fa',
-                              borderRadius: 999,
-                              padding: '2px 8px',
-                              fontSize: 11,
-                              fontWeight: 700
-                            }}>
-                              {topic.count} mentions
+                            <span className="topic-mentions-badge">
+                              {topic.count} {topic.count === 1 ? 'mention' : 'mentions'}
                             </span>
                           </div>
                         </div>
@@ -1110,7 +1081,7 @@ export const UserDashboard: React.FC = () => {
                     })}
                   </div>
 
-                  <div style={{
+                  <div className="topic-legend-container" style={{
                     padding: '10px 14px',
                     borderRadius: '10px',
                     background: 'rgba(255, 255, 255, 0.02)',
@@ -1120,9 +1091,11 @@ export const UserDashboard: React.FC = () => {
                     alignItems: 'center',
                     fontSize: 11,
                     color: 'var(--text-secondary)',
-                    marginTop: 'auto'
+                    marginTop: 'auto',
+                    flexWrap: 'wrap',
+                    gap: 8
                   }}>
-                    <div style={{ display: 'flex', gap: 12 }}>
+                    <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                       <span style={{ color: '#34d399', display: 'flex', alignItems: 'center', gap: 4 }}>
                         ● Positive
                       </span>
@@ -1133,7 +1106,7 @@ export const UserDashboard: React.FC = () => {
                         ● Urgent
                       </span>
                     </div>
-                    <span>Parsed from Gemini summaries</span>
+                    <span style={{ fontSize: 11 }}>Parsed from Gemini summaries</span>
                   </div>
                 </div>
               )}

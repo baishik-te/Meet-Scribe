@@ -5,7 +5,7 @@ import { InlineNotice } from '../components/InlineNotice';
 import { ProfileAvatar } from '../components/ProfileAvatar';
 import { VerifiedBadge } from '../components/VerifiedBadge';
 import { useAuth } from '../context/AuthContext';
-import { isActivePlan, formatBillingPeriod, formatBillingPeriodShort } from '../lib/planSelection';
+import { isActivePlan, formatBillingPeriod } from '../lib/planSelection';
 import type { PlanVM, SubscriptionVM } from '../types/viewModels';
 import '../styles/profile.css';
 
@@ -65,18 +65,18 @@ interface ProfileDetails {
 export const Profile: React.FC = () => {
   const { user, refreshUser } = useAuth();
 
-  const [balance, setBalance]           = useState<number>(0);
+  const [balance, setBalance] = useState<number>(0);
   const [subscription, setSubscription] = useState<SubscriptionVM | null>(null);
-  const [plans, setPlans]               = useState<PlanVM[]>([]);
-  const [loading, setLoading]           = useState(false);
-  const [loadingPlan, setLoadingPlan]   = useState<string | null>(null);
-  const [successMsg, setSuccessMsg]     = useState('');
+  const [plans, setPlans] = useState<PlanVM[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState('');
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
   // ── Account details (GET/PATCH /user/profile, POST /user/avatar) ──
-  const [profile, setProfile]           = useState<ProfileDetails | null>(null);
-  const [editing, setEditing]           = useState(false);
-  const [accountName, setAccountName]   = useState('');
+  const [profile, setProfile] = useState<ProfileDetails | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [accountName, setAccountName] = useState('');
   const [savingAccount, setSavingAccount] = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [accountError, setAccountError] = useState<string | null>(null);
@@ -197,11 +197,11 @@ export const Profile: React.FC = () => {
     }
   };
 
-  const displayName    = profile?.name ?? user?.name ?? '';
-  const displayEmail   = profile?.email ?? user?.email ?? '';
-  const emailVerified  = profile?.emailVerified ?? user?.emailVerified ?? false;
-  const avatarUrl      = profile?.avatarUrl ?? user?.avatarUrl ?? null;
-  const memberSince    = profile?.createdAt
+  const displayName = profile?.name ?? user?.name ?? '';
+  const displayEmail = profile?.email ?? user?.email ?? '';
+  const emailVerified = profile?.emailVerified ?? user?.emailVerified ?? false;
+  const avatarUrl = profile?.avatarUrl ?? user?.avatarUrl ?? null;
+  const memberSince = profile?.createdAt
     ? new Date(profile.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })
     : '—';
 
@@ -323,9 +323,8 @@ export const Profile: React.FC = () => {
               <dt>Status</dt>
               <dd>
                 <span
-                  className={`profile-status-pill ${
-                    profile?.status === 'ACTIVE' ? 'profile-status-pill--active' : 'profile-status-pill--muted'
-                  }`}
+                  className={`profile-status-pill ${profile?.status === 'ACTIVE' ? 'profile-status-pill--active' : 'profile-status-pill--muted'
+                    }`}
                 >
                   <span className="profile-status-pill__dot" />
                   {profile?.status ?? '—'}
@@ -351,7 +350,7 @@ export const Profile: React.FC = () => {
                 <div className="plan-card__name">{subscription?.plan?.name ?? 'Free Tier'}</div>
                 {subscription?.plan && (
                   <div className="plan-card__meta">
-                    ${subscription.plan.price}/{formatBillingPeriodShort(subscription.plan.billingPeriod)} · renews{' '}
+                    ${subscription.plan.price}/{formatBillingPeriod(subscription.plan.billingPeriod)} · renews{' '}
                     {subscription.currentPeriodEnd ? new Date(subscription.currentPeriodEnd).toLocaleDateString() : '—'}
                   </div>
                 )}
@@ -371,9 +370,8 @@ export const Profile: React.FC = () => {
                 <div className="plan-card__stat">
                   <div className="plan-card__stat-label">Status</div>
                   <span
-                    className={`profile-status-pill ${
-                      subscription ? 'profile-status-pill--active' : 'profile-status-pill--muted'
-                    }`}
+                    className={`profile-status-pill ${subscription ? 'profile-status-pill--active' : 'profile-status-pill--muted'
+                      }`}
                   >
                     <span className="profile-status-pill__dot" />
                     {subscription?.status ?? 'NO PLAN'}
@@ -384,18 +382,18 @@ export const Profile: React.FC = () => {
 
             {/* Aesthetic Grid for Rates */}
             {subscription?.plan && (
-              <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', 
-                gap: 16, 
-                marginTop: 28, 
-                paddingTop: 24, 
-                borderTop: '1px solid var(--border-color)' 
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                gap: 16,
+                marginTop: 28,
+                paddingTop: 24,
+                borderTop: '1px solid var(--border-color)'
               }}>
-                <FeatureRateItem icon={<Icons.Video/>} label="Video Call" rate={subscription.plan.videoRatePerMinute} unit="t/min" color={{ bg: 'rgba(59, 130, 246, 0.15)', text: '#3b82f6' }} />
-                <FeatureRateItem icon={<Icons.Recording/>} label="Call Rec" rate={subscription.plan.recordingRatePerMinute} unit="t/min" color={{ bg: 'rgba(239, 68, 68, 0.15)', text: '#ef4444' }} />
-                <FeatureRateItem icon={<Icons.Transcription/>} label="Live Transcribe" rate={subscription.plan.transcriptionRatePerMinute} unit="t/min" color={{ bg: 'rgba(168, 85, 247, 0.15)', text: '#a855f7' }} />
-                <FeatureRateItem icon={<Icons.AI/>} label="Gemini Query" rate={subscription.plan.geminiRatePerRequest} unit="t/req" color={{ bg: 'rgba(16, 185, 129, 0.15)', text: '#10b981' }} />
+                <FeatureRateItem icon={<Icons.Video />} label="Video Call" rate={subscription.plan.videoRatePerMinute} unit="t/min" color={{ bg: 'rgba(59, 130, 246, 0.15)', text: '#3b82f6' }} />
+                <FeatureRateItem icon={<Icons.Recording />} label="Call Rec" rate={subscription.plan.recordingRatePerMinute} unit="t/min" color={{ bg: 'rgba(239, 68, 68, 0.15)', text: '#ef4444' }} />
+                <FeatureRateItem icon={<Icons.Transcription />} label="Live Transcribe" rate={subscription.plan.transcriptionRatePerMinute} unit="t/min" color={{ bg: 'rgba(168, 85, 247, 0.15)', text: '#a855f7' }} />
+                <FeatureRateItem icon={<Icons.AI />} label="Gemini Query" rate={subscription.plan.geminiRatePerRequest} unit="t/req" color={{ bg: 'rgba(16, 185, 129, 0.15)', text: '#10b981' }} />
               </div>
             )}
           </div>
@@ -419,15 +417,14 @@ export const Profile: React.FC = () => {
                   <article key={p.id} className={`tier-card${isActive ? ' tier-card--active' : ''}`}>
                     {isActive && <span className="tier-card__tag">ACTIVE</span>}
                     <div className="tier-card__name">{p.name}</div>
-                    <div className="tier-card__price">${p.price}/{formatBillingPeriodShort(p.billingPeriod)}</div>
+                    <div className="tier-card__price">${p.price}/{formatBillingPeriod(p.billingPeriod)}</div>
                     <div className="tier-card__quota">{p.monthlyTokenQuota.toLocaleString()} Tokens/{formatBillingPeriod(p.billingPeriod)}</div>
                     <button
                       type="button"
                       disabled={isActive || loadingPlan === p.id}
                       onClick={() => handleUpgrade(p.id)}
-                      className={`profile-btn tier-card__btn ${
-                        isActive ? 'tier-card__btn--current' : 'profile-btn--primary'
-                      }`}
+                      className={`profile-btn tier-card__btn ${isActive ? 'tier-card__btn--current' : 'profile-btn--primary'
+                        }`}
                     >
                       {isActive ? '✓ Current Plan' : loadingPlan === p.id ? 'Redirecting...' : 'Switch to Plan'}
                     </button>

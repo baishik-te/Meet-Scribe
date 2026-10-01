@@ -156,9 +156,9 @@ const RecordingsTab: React.FC = () => {
         recordings.map((rec) => (
           <div key={rec.id} style={cardStyle}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
-              <div style={{ minWidth: 0, flex: 1 }}>
+              <div style={{ minWidth: 0, flex: '1 1 200px' }}>
                 {editingId === rec.id ? (
-                  <div style={{ display: 'flex', gap: 8 }}>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     <input
                       value={editValue}
                       onChange={(e) => setEditValue(e.target.value)}
@@ -171,14 +171,15 @@ const RecordingsTab: React.FC = () => {
                         color: '#fff',
                         borderRadius: 'var(--radius-md)',
                         padding: '8px 12px',
+                        minWidth: 140,
                       }}
                     />
                     <button type="button" onClick={() => saveRename(rec)} style={btnPrimary}>Save</button>
                     <button type="button" onClick={() => setEditingId(null)} style={btnGhost}>Cancel</button>
                   </div>
                 ) : (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <h3 style={{ margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                    <h3 style={{ margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}>
                       {rec.name || 'Untitled recording'}
                     </h3>
                     <button
@@ -197,7 +198,7 @@ const RecordingsTab: React.FC = () => {
                   <span>⏱ {formatDuration(rec.durationSeconds)}</span>
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                 <button
                   type="button"
                   onClick={() => togglePlay(rec)}
@@ -461,7 +462,7 @@ export const Library: React.FC = () => {
         Your saved call recordings and live transcriptions. Generate AI summaries from any transcript.
       </p>
 
-      <div style={{ display: 'flex', gap: 12, marginBottom: 24 }}>
+      <div style={{ display: 'flex', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
         {tabButton('recordings', '🎥 Recordings')}
         {tabButton('transcriptions', '📝 Transcriptions')}
       </div>

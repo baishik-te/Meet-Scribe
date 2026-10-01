@@ -92,6 +92,8 @@ export interface PreJoinConfig {
   token: string | null;
   selectedCameraId?: string;
   selectedMicId?: string;
+  /** Facing of the camera the user previewed, so the call starts on the same lens. */
+  cameraFacingMode?: 'user' | 'environment';
   cameraEnabled: boolean;
   micEnabled: boolean;
 }

@@ -74,25 +74,65 @@ const runCallBillingCycle = async () => {
 
       try {
         await sequelize.transaction(async (t) => {
-          await TokenService.deductTokens(
-            {
-              userId: caller.id,
-              amount: currentRate,
-              transactionType: "VIDEO_USAGE",
-              referenceId: call.id,
-              featureReference: `call:${call.roomName}`,
-              metadata: {
-                roomName: call.roomName,
-                planName: rates.plan?.name,
-                videoRate: call.videoEnabled ? rates.videoRate : 0,
-                recordingRate: call.recordingEnabled ? rates.recordingRate : 0,
-                transcriptionRate: call.transcriptionEnabled
-                  ? rates.transcriptionRate
-                  : 0,
+          // 1. Deduct Video Usage if video call is active
+          if (call.videoEnabled && rates.videoRate > 0) {
+            await TokenService.deductTokens(
+              {
+                userId: caller.id,
+                amount: rates.videoRate,
+                transactionType: "VIDEO_USAGE",
+                referenceId: call.id,
+                featureReference: `call:${call.roomName}:video`,
+                metadata: {
+                  roomName: call.roomName,
+                  planName: rates.plan?.name,
+                  service: "VIDEO",
+                  ratePerMinute: rates.videoRate,
+                },
               },
-            },
-            t,
-          );
+              t,
+            );
+          }
+
+          // 2. Deduct Video Recording Usage if recording is enabled
+          if (call.recordingEnabled && rates.recordingRate > 0) {
+            await TokenService.deductTokens(
+              {
+                userId: caller.id,
+                amount: rates.recordingRate,
+                transactionType: "RECORDING_USAGE",
+                referenceId: call.id,
+                featureReference: `call:${call.roomName}:recording`,
+                metadata: {
+                  roomName: call.roomName,
+                  planName: rates.plan?.name,
+                  service: "RECORDING",
+                  ratePerMinute: rates.recordingRate,
+                },
+              },
+              t,
+            );
+          }
+
+          // 3. Deduct Transcription Usage if transcription is enabled
+          if (call.transcriptionEnabled && rates.transcriptionRate > 0) {
+            await TokenService.deductTokens(
+              {
+                userId: caller.id,
+                amount: rates.transcriptionRate,
+                transactionType: "TRANSCRIPTION_USAGE",
+                referenceId: call.id,
+                featureReference: `call:${call.roomName}:transcription`,
+                metadata: {
+                  roomName: call.roomName,
+                  planName: rates.plan?.name,
+                  service: "TRANSCRIPTION",
+                  ratePerMinute: rates.transcriptionRate,
+                },
+              },
+              t,
+            );
+          }
 
           call.durationSeconds = (call.durationSeconds || 0) + 60;
           call.lastBilledAt = new Date();

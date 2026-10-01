@@ -657,17 +657,169 @@
 
 /* ── Responsive: single active column below 768px ── */
 @media (max-width: 768px) {
+  .msgx {
+    height: 100% !important;
+    max-height: 100% !important;
+    min-height: 0 !important;
+    flex: 1 1 0% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+  }
+
+  .msgx-panel-sidebar,
+  .msgx-panel-main {
+    height: 100% !important;
+    width: 100% !important;
+    max-height: 100% !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+  }
+
   .msgx-sidebar {
-    width: 100%;
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
   }
+
+  .msgx-main {
+    width: 100% !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    min-height: 0 !important;
+    border-radius: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+  }
+
   .msgx--has-active .msgx-sidebar {
-    display: none;
+    display: none !important;
   }
+
   .msgx:not(.msgx--has-active) .msgx-main {
-    display: none;
+    display: none !important;
   }
+
+  .msgx-header {
+    flex-shrink: 0 !important;
+    padding: 10px 14px;
+    background: rgba(20, 25, 38, 0.96);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-color);
+    box-sizing: border-box !important;
+  }
+
   .msgx-header__back {
-    display: inline-flex;
+    display: inline-flex !important;
+    margin-right: 4px;
+    width: 36px;
+    height: 36px;
+    background: var(--bg-card-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-pill);
+    align-items: center;
+    justify-content: center;
+  }
+
+  .msgx-header__name {
+    font-size: 15px;
+  }
+
+  .msgx-header__status {
+    font-size: 11px;
+  }
+
+  .msgx-history {
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding: 12px 12px 8px;
+    box-sizing: border-box !important;
+  }
+
+  .msgx-row {
+    max-width: 88%;
+  }
+
+  .msgx-bubble {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+
+  .msgx-bubble__image {
+    max-width: 220px;
+    max-height: 220px;
+  }
+
+  .msgx-composer-container {
+    flex-shrink: 0 !important;
+    width: 100% !important;
+    background: rgba(20, 25, 38, 0.98) !important;
+    border-top: 1px solid var(--border-color) !important;
+    position: relative;
+    z-index: 20;
+    box-sizing: border-box !important;
+  }
+
+  .msgx-composer {
+    display: flex !important;
+    align-items: center !important;
+    padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px)) !important;
+    gap: 8px !important;
+    background: transparent !important;
+    border-top: none !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .msgx-composer__tools {
+    display: flex !important;
+    align-items: center !important;
+    gap: 2px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .msgx-composer__tools .msgx-iconbtn {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  .msgx-composer__field {
+    flex: 1 1 0% !important;
+    min-width: 0 !important;
+    padding: 6px 10px !important;
+    background: rgba(10, 14, 26, 0.85) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--radius-md, 10px) !important;
+  }
+
+  .msgx-composer__input {
+    font-size: 14px !important;
+    max-height: 80px !important;
+  }
+
+  .msgx-send {
+    width: 38px !important;
+    height: 38px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .msgx-attachment-preview {
+    padding: 6px 12px;
   }
 }
 

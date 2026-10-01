@@ -47,7 +47,8 @@ async function resolvePlanRates(callerId) {
     plan,
     videoRate: plan?.videoRatePerMinute ?? 2,
     recordingRate: plan?.recordingRatePerMinute ?? 1,
-    transcriptionRate: plan?.transcriptionRatePerMinute ?? 1
+    transcriptionRate: plan?.transcriptionRatePerMinute ?? 1,
+    geminiRate: plan?.geminiRatePerRequest ?? 5
   };
 }
 
@@ -93,7 +94,8 @@ async function syncCallBalanceAndRate(roomNameOrCallId, targetSocket = null) {
       rates: {
         videoRate: rates.videoRate,
         recordingRate: rates.recordingRate,
-        transcriptionRate: rates.transcriptionRate
+        transcriptionRate: rates.transcriptionRate,
+        geminiRate: rates.geminiRate
       },
       features: {
         videoEnabled: Boolean(call.videoEnabled),

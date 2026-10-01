@@ -149,7 +149,7 @@ export const NavRail: React.FC = () => {
     <button
       key={item.key}
       type="button"
-      className={`nav-rail__btn ${item.isActive(location.pathname) ? 'active' : ''}`}
+      className={`nav-rail__btn nav-rail__btn--${item.key} ${item.isActive(location.pathname) ? 'active' : ''}`}
       onClick={() => navigate(item.route)}
       title={item.label}
       aria-label={item.label}
